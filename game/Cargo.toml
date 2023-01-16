@@ -9,4 +9,6 @@ members = [
     "engine",
 ]
 [dependencies]
+glium = "0.32.1"
+rand = "0.8.5"
 engine = { path = "./engine" }

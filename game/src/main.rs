@@ -1,6 +1,96 @@
+#[macro_use]
+extern crate glium;
+use glium::{glutin, Surface};
+use rand::{Rng, thread_rng};
+
 use engine;
+
+#[derive(Copy, Clone)]
+struct Vertex {
+    position: [f32; 2],
+}
+
+implement_vertex!(Vertex, position);
 
 
 fn main() {
-    println!("Старт игры!");
+    // Очередь событий (Системные)
+    let mut event_loop = glutin::event_loop::EventLoop::new();
+    // Объект для создания окон.
+    let wb = glutin::window::WindowBuilder::new();
+    // Контекст окна, который мы не трогаем.
+    let cb = glutin::ContextBuilder::new();
+    // Дисплей (само окно) Берёт строителя, берёт контекст, берёт очередь событий и делает окно.
+    let display = glium::Display::new(wb, cb, &event_loop).unwrap();
+
+    let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+
+    let vertex_shader_src = r#"
+        #version 140
+        in vec2 position;
+        void main() {
+            gl_Position = vec4(position, 0.0, 1.0);
+        }
+    "#;
+
+    let fragment_shader_src = r#"
+        #version 140
+        out vec4 color;
+        void main() {
+            color = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    "#;
+    let program = glium::Program::from_source(
+    &display,
+    vertex_shader_src,
+    fragment_shader_src,
+    None).unwrap();
+    let mut random_gen = thread_rng();
+
+    event_loop.run(move |event, _, control_flow| {
+        // Основной цикл игры
+            let vertex1 = Vertex { position: [-random_gen.gen_range(-100..100) as f32 / 100.0,
+                -random_gen.gen_range(-100..100) as f32 / 100.0] };
+        let vertex2 = Vertex { position: [ random_gen.gen_range(-100..100) as f32 / 100.0
+            ,  random_gen.gen_range(-100..100) as f32 / 100.0] };
+        let mut vertex3 = Vertex { position: [ random_gen.gen_range(-100..100) as f32 / 100.0,
+            random_gen.gen_range(-100..100) as f32 / 100.0]};
+        let mut random_gen = thread_rng();
+        let shape = vec![vertex1, vertex2, vertex3];
+        let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
+        // Вычисление времени, которое нужно подождать до следующего кадра
+        let next_frame_time = std::time::Instant::now() +
+            std::time::Duration::from_nanos(16_666_667);  // 16_666_667 значит 60 фпс
+            // Замедляет(ограничивает) цикл исходя из времени, которое мы указали.
+        *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
+            // Обработка событий(системных типо нажатия клавиши, крестика и тп)
+        match event {
+            // Первая ветка match это событие glutin(нормальное системное событие)
+            // Тут это событие окна
+            glutin::event::Event::WindowEvent { event, .. } => match event {
+                // Событие окна - запрошено закрыть окно
+                glutin::event::WindowEvent::CloseRequested => {
+                    // Выходим из цикла
+                    *control_flow = glutin::event_loop::ControlFlow::Exit;
+                },
+                // Остальные события мы пока не обрабатывает
+                _ => return,
+            },
+            glutin::event::Event::NewEvents(cause) => match cause {
+                glutin::event::StartCause::ResumeTimeReached { .. } => (),
+                glutin::event::StartCause::Init => (),
+                _ => return,
+            },
+            // Игнорируем все остальные события.
+            _ => (),
+        }
+        let mut target = display.draw();
+        target.clear_color(random_gen.gen_range(-100..100) as f32 / 100.0,
+                           random_gen.gen_range(-100..100) as f32 / 100.0,
+                           random_gen.gen_range(-100..100) as f32 / 100.0, 1.0);
+        target.draw(&vertex_buffer, &indices, &program,
+                    &glium::uniforms::EmptyUniforms,
+            &Default::default()).unwrap();
+        target.finish().unwrap();
+    });
 }

@@ -84,7 +84,7 @@ fn main() {
         let img_dim = img.dimensions();
         let img = glium::texture::RawImage2d::from_raw_rgba_reversed(&img.into_raw(), img_dim);
 
-        glium::texture::Texture2d::new(&display, img).unwrap()
+        glium::texture::SrgbTexture2d::new(&display, img).unwrap()
     };
 
     // Before we can draw the rectangle we have to

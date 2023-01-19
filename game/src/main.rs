@@ -27,8 +27,11 @@ fn main() {
     let rect_program = Rect::drawing_program(&display);
     let image_manager = ImageManager::from(&display, &rect_program,SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut img = image_manager.build(Path::new("fox.png"), 300, 300);
+    let mut img2 = image_manager.build(Path::new("fox.png"), 300, 300);
     let mut x = 200;
     let mut y = 200;
+    let mut x2 = 300;
+    let mut y2 = 600;
     // Load the texture.
 
     // Main event loop where all the drawing code is contained.
@@ -40,11 +43,20 @@ fn main() {
         // dispatched any events. This is ideal for games and similar applications.
         control_flow.set_poll();
         x += 1;
+        x2 += 1;
+        if x > 11000 as i32 {
+            x = 0
+        }
+        if x2 > 11000 as i32 {
+            x2 = 0
+        }
         img.move_ip(x / 10, y);
+        img2.move_ip(x2 / 10, y2);
 
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
         image_manager.draw(&img, &mut frame);
+        image_manager.draw(&img2, &mut frame);
         frame.finish().unwrap();
 
         // Handles keyboard input.

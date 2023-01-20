@@ -73,6 +73,7 @@ impl ImageManager <'_> {
             Into::<[[f32; 4]; 4]>::into(matrix)
         };
         let draw_parameters = glium::DrawParameters {
+            blend: glium::draw_parameters::Blend::alpha_blending(),
             .. Default::default()
         };
         ImageManager {display, program, perspective, draw_parameters}

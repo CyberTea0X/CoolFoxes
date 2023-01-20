@@ -31,7 +31,7 @@ fn main() {
     let mut x = 200;
     let mut y = 200;
     let mut x2 = 300;
-    let mut y2 = 600;
+    let mut y2 = 400;
     // Load the texture.
 
     // Main event loop where all the drawing code is contained.
@@ -43,7 +43,7 @@ fn main() {
         // dispatched any events. This is ideal for games and similar applications.
         control_flow.set_poll();
         x += 1;
-        x2 += 1;
+        x2 += 2;
         if x > 11000 as i32 {
             x = 0
         }

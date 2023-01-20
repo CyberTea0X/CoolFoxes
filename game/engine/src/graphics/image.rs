@@ -25,7 +25,6 @@ impl Image {
                         // Load the texture.
         let texture = {
             let img = image::open(path).unwrap().to_rgba16();
-
             let img_dim = img.dimensions();
             let img = glium::texture::RawImage2d::from_raw_rgba_reversed(&img.into_raw(),
                                                                          img_dim);
@@ -56,6 +55,7 @@ pub struct ImageManager<'a> {
     display: &'a glium::Display,
     program: &'a glium::Program,
     perspective: [[f32; 4]; 4],
+    draw_parameters: glium::draw_parameters::DrawParameters<'a>,
 }
 
 impl ImageManager <'_> {
@@ -72,7 +72,10 @@ impl ImageManager <'_> {
             );
             Into::<[[f32; 4]; 4]>::into(matrix)
         };
-        ImageManager {display, program, perspective}
+        let draw_parameters = glium::DrawParameters {
+            .. Default::default()
+        };
+        ImageManager {display, program, perspective, draw_parameters}
     }
     pub fn build(&self, path:&Path, width: u32, height: u32) -> Image
     {
@@ -135,7 +138,7 @@ impl ImageManager <'_> {
                 &rect_indices,
                 self.program,
                 &uniforms,
-                &Default::default()
+                &self.draw_parameters
         ).unwrap();
     }
 }

@@ -10,6 +10,7 @@ pub mod time;
 pub mod component;
 pub mod sprite;
 pub mod unit;
+pub mod events;
 
 pub use rect::Rect;
 

@@ -9,6 +9,7 @@ use glium::{Surface};
 use std::io::Cursor;
 use glium::glutin::dpi::PhysicalSize;
 use std::path::Path;
+use std::time::{Duration, Instant};
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 
 use engine::graphics::{Image, Vertex};
@@ -29,32 +30,30 @@ fn main() {
     let rect_program = Rect::drawing_program(&display);
     let image_manager = ImageManager::from(&display, &rect_program,SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut img = image_manager.build(Path::new("fox.png"), 300, 300);
-    let mut img2 = image_manager.build(Path::new("fox.png"), 300, 300);
-    let mut x = 200;
+    let mut img2 = image_manager.build(Path::new("wolf.png"), 500, 300);
+    let mut x = 0;
     let mut y = 200;
-    let mut x2 = 300;
+    let mut x2 = 1024;
     let mut y2 = 400;
-
-    let mut clock = Clock::new();
     let mut dt = 0;
-    event_loop.run_return(|event, _, control_flow|{
+    let mut fps = 60;
+    let mut event_handling_start: Instant;
+    let mut running = true;
+    let mut clock = Clock::new();
+    while running {
         let mut frame = display.draw();
         println!("{}", dt);
         dt = clock.get_time().as_millis();
-
-        // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
-        // dispatched any events. This is ideal for games and similar applications.
-        control_flow.set_poll();
         x += 1;
-        x2 += 2;
-        if x > 11000 as i32 {
+        x2 -= 1;
+        if x > 1024 as i32 {
             x = 0
         }
-        if x2 > 11000 as i32 {
-            x2 = 0
+        if x2 < 0 as i32 {
+            x2 = 1024
         }
-        img.move_ip(x / 10, y);
-        img2.move_ip(x2 / 10, y2);
+        img.move_ip(x, y);
+        img2.move_ip(x2, y2);
 
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
@@ -63,23 +62,33 @@ fn main() {
         frame.finish().unwrap();
 
         // Handles keyboard input.
-        match event {
-            glutin::event::Event::WindowEvent { event, .. } => match event {
-                glutin::event::WindowEvent::CloseRequested => {
-                    *control_flow = glutin::event_loop::ControlFlow::Exit;
-                    return;
+        event_handling_start = Instant::now();
+
+        // Большая и ужасная обработка событий
+        event_loop.run_return(|event, _, control_flow|{
+            match event {
+                glutin::event::Event::WindowEvent { event, .. } => match event {
+                    glutin::event::WindowEvent::CloseRequested => {
+                        *control_flow = glutin::event_loop::ControlFlow::Exit;
+                        running = false;
+                        return;
+                    },
+                    _ => return,
+                },
+                glutin::event::Event::NewEvents(cause) => match cause {
+                    glutin::event::StartCause::ResumeTimeReached { .. } => (),
+                    glutin::event::StartCause::Init => (),
+                    _ => return,
                 },
                 _ => return,
-            },
-            glutin::event::Event::NewEvents(cause) => match cause {
-                glutin::event::StartCause::ResumeTimeReached { .. } => (),
-                glutin::event::StartCause::Init => (),
-                _ => return,
-            },
-            _ => return,
-        }
-        let next_frame_time = std::time::Instant::now() +
-            std::time::Duration::from_nanos(16_666_667);
-        *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
+            }
+            let next_frame_time = std::time::Instant::now() +
+                std::time::Duration::from_nanos(16_666_667);
+            *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
+            if event_handling_start.elapsed() > (Duration::from_secs(1) / 60) {
+                *control_flow = glutin::event_loop::ControlFlow::Exit;
+            }
+
     });
+    }
 }

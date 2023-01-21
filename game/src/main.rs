@@ -10,9 +10,11 @@ use std::io::Cursor;
 use glium::glutin::dpi::PhysicalSize;
 use std::path::Path;
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
+
 use engine::graphics::{Image, Vertex};
 use engine::graphics::image::ImageManager;
 use engine::Rect;
+use engine::time::Clock;
 
 const SCREEN_WIDTH: u32 = 1024;
 const SCREEN_HEIGHT: u32 = 768;
@@ -33,10 +35,12 @@ fn main() {
     let mut x2 = 300;
     let mut y2 = 400;
 
-    let mut dt = Instant::now();
+    let mut clock = Clock::new();
+    let mut dt = 0;
     event_loop.run_return(|event, _, control_flow|{
         let mut frame = display.draw();
-        let display = &display;
+        println!("{}", dt);
+        dt = clock.get_time().as_millis();
 
         // ControlFlow::Poll continuously runs the event loop, even if the OS hasn't
         // dispatched any events. This is ideal for games and similar applications.

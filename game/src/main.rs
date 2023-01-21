@@ -32,9 +32,8 @@ fn main() {
     let mut y = 200;
     let mut x2 = 300;
     let mut y2 = 400;
-    // Load the texture.
 
-    // Main event loop where all the drawing code is contained.
+    let mut dt = Instant::now();
     event_loop.run_return(|event, _, control_flow|{
         let mut frame = display.draw();
         let display = &display;

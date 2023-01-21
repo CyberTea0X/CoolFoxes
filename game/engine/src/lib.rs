@@ -6,6 +6,11 @@ pub mod graphics;
 pub mod physics;
 pub mod sounds;
 pub mod rect;
+pub mod time;
+pub mod component;
+pub mod sprite;
+pub mod unit;
+
 pub use rect::Rect;
 
 pub fn add(left: usize, right: usize) -> usize {

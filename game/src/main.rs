@@ -29,31 +29,29 @@ fn main() {
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
     let rect_program = Rect::drawing_program(&display);
     let image_manager = ImageManager::from(&display, &rect_program,SCREEN_WIDTH, SCREEN_HEIGHT);
-    let mut img = image_manager.build(Path::new("fox.png"), 300, 300);
-    let mut img2 = image_manager.build(Path::new("wolf.png"), 500, 300);
-    let mut x = 0;
-    let mut y = 768;
-    let mut x2 = 1024;
-    let mut y2 = 768;
+    let mut img = image_manager.build(Path::new("fox.png"), 300, 300)
+        .with_position(0, 768);
+    let mut img2 = image_manager.build(Path::new("wolf.png"), 500, 300)
+        .with_position(1024, 768);
     let mut dt = 0;
-    let mut fps = 60;
+    let mut fps = 60.0;
     let mut event_handling_start: Instant;
+    let mut frame_handling_start: Instant;
     let mut running = true;
     let mut clock = Clock::new();
     while running {
         let mut frame = display.draw();
+        frame_handling_start = Instant::now();
         println!("{}", dt);
         dt = clock.get_time().as_millis();
-        x += 1;
-        x2 -= 1;
-        if x > 1024 as i32 {
-            x = 0
+        img.move_by(1, 0);
+        img2.move_by(-1, 0);
+        if img.get_rect().bottom() > 1024.0 {
+            img.move_ip(Some(0), None);
         }
-        if x2 < 0 as i32 {
-            x2 = 1024
+        if img2.get_rect().bottom() < 0.0 {
+            img2.move_ip(Some(1024), None);
         }
-        img.move_ip(x, y);
-        img2.move_ip(x2, y2);
 
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
@@ -64,7 +62,7 @@ fn main() {
         // Handles keyboard input.
         event_handling_start = Instant::now();
 
-        // Большая и ужасная обработка событий
+        // Большая и ужасная обработка событий и времени между кадрами
         event_loop.run_return(|event, _, control_flow|{
             match event {
                 glutin::event::Event::WindowEvent { event, .. } => match event {
@@ -82,12 +80,15 @@ fn main() {
                 },
                 _ => return,
             }
-            let next_frame_time = std::time::Instant::now() +
-                std::time::Duration::from_nanos(16_666_667);
-            *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
-            if event_handling_start.elapsed() > (Duration::from_secs(1) / 60) {
+            if (event_handling_start.elapsed() + frame_handling_start.elapsed()) >
+                (Duration::from_secs(1) / 60) {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
+                return;
             }
+            let next_frame_time = std::time::Instant::now() +
+                (Duration::from_secs(1) / 60 -
+                (event_handling_start.elapsed() + frame_handling_start.elapsed()));
+            *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
 
     });
     }

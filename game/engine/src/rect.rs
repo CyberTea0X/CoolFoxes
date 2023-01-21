@@ -1,20 +1,23 @@
+use cgmath::Bounded;
+use cgmath::num_traits::ToPrimitive;
 use glium::backend::Facade;
+use rand::distributions::hidden_export::IntoFloat;
 
 pub struct Rect {
-    left: i32,
-    bottom: i32,
+    left: f64,
+    bottom: f64,
     width: u32,
     height: u32,
 }
 
 impl Rect {
     pub fn new() -> Rect {
-        Rect {left: 0, bottom: 0, width: 0, height: 0}
+        Rect {left: 0.0, bottom: 0.0, width: 0, height: 0}
     }
     pub fn from(width: u32, height: u32) -> Rect {
-        Rect {left: 0, bottom: 0, width, height}
+        Rect {left: 0.0, bottom: 0.0, width, height}
     }
-    pub fn with_position(mut self, left: i32, bottom: i32) -> Rect {
+    pub fn with_position(mut self, left: f64, bottom: f64) -> Rect {
         self.left = left;
         self.bottom = bottom;
         return self;
@@ -25,17 +28,17 @@ impl Rect {
     pub fn height(&self) -> u32 {
         self.height
     }
-    pub fn left(&self) -> i32 {
+    pub fn left(&self) -> f64 {
         self.left
     }
-    pub fn right(&self) -> i32 {
-        self.left + self.width as i32
+    pub fn right(&self) -> f64 {
+        self.left + self.width as f64
     }
-    pub fn bottom(&self) -> i32 {
+    pub fn bottom(&self) -> f64 {
         self.bottom
     }
-    pub fn top(&self) -> i32 {
-        self.bottom + self.height as i32
+    pub fn top(&self) -> f64 {
+        self.bottom + self.height as f64
     }
     /// Create a program from the two shaders.
     /// A "program" is just a bunch of shaders so you can have multiple programs
@@ -50,9 +53,17 @@ impl Rect {
         None
     ).unwrap()
     }
-    pub fn move_ip(&mut self, x: i32, y: i32) {
-        self.left = x;
-        self.bottom = y;
+    pub fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
+        let x = if let Some(x) = x {
+            self.left = x.into();
+        };
+        let y = if let Some(y) = y {
+            self.bottom = y.into();
+        };
+    }
+    pub fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
+        self.left += x.into();
+        self.bottom += y.into();
     }
 }
 

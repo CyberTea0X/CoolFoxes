@@ -7,7 +7,7 @@ use glium::implement_vertex;
 pub struct Vertex {
     // The fields in Vertex are usually there
     // to be passed into the shader file.
-    pub position: [f32; 2],
+    pub position: [f64; 2],
 }
 
 // This line implements the Vertex using a macro inside glium.

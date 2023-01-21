@@ -46,8 +46,15 @@ impl Image {
     pub fn get_rect(&self) -> &Rect {
         &self.rect
     }
-    pub fn move_ip(&mut self, x: i32, y: i32) {
+    pub fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
         self.rect.move_ip(x, y);
+    }
+    pub fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
+        self.rect.move_by(x, y);
+    }
+    pub fn with_position<T: Into<f64>>(mut self, x: T, y: T) -> Image {
+        self.rect.move_ip(Some(x), Some(y));
+        self
     }
 }
 
@@ -119,11 +126,11 @@ impl ImageManager <'_> {
         // Dynamically set the rectangle's vertices.
         {
             let rect = image.get_rect();
-            let left = rect.left() as f32;
-            let right = rect.left() as f32+ rect.width() as f32;
-            let bottom = rect.bottom() as f32;
-            let top = rect.bottom() as f32 - rect.height() as f32;
-            println!("left: {left}\nright: {right}\nbottom: {bottom}\ntop: {top}");
+            let left = rect.left();
+            let right = rect.left() + rect.width() as f64;
+            let bottom = rect.bottom();
+            let top = rect.bottom() - rect.height() as f64;
+            //println!("left: {left}\nright: {right}\nbottom: {bottom}\ntop: {top}");
             let vb_data = vec![
                 Vertex { position: [left, top] },
                 Vertex { position: [right, top] },

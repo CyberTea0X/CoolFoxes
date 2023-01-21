@@ -32,9 +32,9 @@ fn main() {
     let mut img = image_manager.build(Path::new("fox.png"), 300, 300);
     let mut img2 = image_manager.build(Path::new("wolf.png"), 500, 300);
     let mut x = 0;
-    let mut y = 200;
+    let mut y = 768;
     let mut x2 = 1024;
-    let mut y2 = 400;
+    let mut y2 = 768;
     let mut dt = 0;
     let mut fps = 60;
     let mut event_handling_start: Instant;

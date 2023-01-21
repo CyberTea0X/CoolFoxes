@@ -1,10 +1,11 @@
 use std::io::Cursor;
+use std::mem::swap;
 use glium;
 use std::path::Path;
 use cgmath::Matrix4;
 use glium::backend::Facade;
 use glium::{Program, Surface, uniform};
-use glium::texture::SrgbTexture2d;
+use glium::texture::{SrgbTexture2d, Texture2dDataSource};
 use glium::uniforms::{EmptyUniforms, UniformsStorage};
 use crate::graphics::Vertex;
 use crate::rect::Rect;
@@ -118,10 +119,11 @@ impl ImageManager <'_> {
         // Dynamically set the rectangle's vertices.
         {
             let rect = image.get_rect();
-            let left = rect.left() as f32 - rect.width() as f32 / 2.0;
-            let right = rect.left() as f32 + rect.width() as f32 / 2.0;
-            let bottom = rect.bottom() as f32 + rect.height() as f32 / 2.0;
-            let top = rect.bottom() as f32 - rect.height() as f32 / 2.0;
+            let left = rect.left() as f32;
+            let right = rect.left() as f32+ rect.width() as f32;
+            let bottom = rect.bottom() as f32;
+            let top = rect.bottom() as f32 - rect.height() as f32;
+            println!("left: {left}\nright: {right}\nbottom: {bottom}\ntop: {top}");
             let vb_data = vec![
                 Vertex { position: [left, top] },
                 Vertex { position: [right, top] },

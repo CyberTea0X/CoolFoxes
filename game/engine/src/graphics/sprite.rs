@@ -8,7 +8,7 @@ use glium::{Program, Surface, uniform};
 use glium::texture::{SrgbTexture2d, Texture2dDataSource};
 use glium::uniforms::{EmptyUniforms, UniformsStorage};
 use crate::graphics::Vertex;
-use crate::rect::Rect;
+use crate::rect::{Rect, Rectangular};
 
 
 type Uniforms <'a> = UniformsStorage<'a, &'a SrgbTexture2d, UniformsStorage<'a, [[f32; 4]; 4],
@@ -16,11 +16,17 @@ type Uniforms <'a> = UniformsStorage<'a, &'a SrgbTexture2d, UniformsStorage<'a, 
 
 pub struct Sprite {
     rect: Rect,
-    pub texture: SrgbTexture2d,
+    texture: SrgbTexture2d,
+    frames_h: u32,
+    frames_v: u32,
+    cur_frame: u32,
+    layer: u32,
+    hidden: bool,
+    //components
 }
 
 impl Sprite {
-    pub fn from(path:&Path, perspective: [[f32; 4]; 4], display: &glium::Display,
+    pub fn from(path:&Path, display: &glium::Display,
                    width: u32, height: u32) -> Sprite
     {
                         // Load the texture.
@@ -33,28 +39,32 @@ impl Sprite {
             SrgbTexture2d::new(display, img).unwrap()
         };
         let rect = Rect::from(width, height);
-        return Sprite {rect, texture};
+        return Sprite {rect, texture, frames_h:1, frames_v:1, cur_frame:1, layer:1, hidden:false};
 
     }
-    pub fn from_rect(rect:glium::Rect) {}
-    pub fn width(&self) -> u32 {
-        self.rect.width()
+    pub fn set_layer(&mut self, layer: u32) {
+        self.layer = layer;
     }
-    pub fn height(&self) -> u32 {
-        self.rect.height()
+    pub fn at_layer(mut self, layer: u32) -> Sprite {
+        self.layer = layer;
+        self
     }
-    pub fn get_rect(&self) -> &Rect {
+    pub fn set_frames(&mut self, frames_h: u32, frames_v: u32) {
+        self.frames_h = frames_h;
+        self.frames_v = frames_v;
+    }
+    pub fn with_frames(mut self, frames_h: u32, frames_v: u32) -> Sprite {
+        self.frames_h = frames_h;
+        self.frames_v = frames_v;
+        self
+    }
+}
+impl Rectangular for Sprite {
+    fn get_rect(&self) -> &Rect {
         &self.rect
     }
-    pub fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
-        self.rect.move_ip(x, y);
-    }
-    pub fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
-        self.rect.move_by(x, y);
-    }
-    pub fn with_position<T: Into<f64>>(mut self, x: T, y: T) -> Sprite {
-        self.rect.move_ip(Some(x), Some(y));
-        self
+    fn get_rect_mut(&mut self) -> &mut Rect {
+        &mut self.rect
     }
 }
 
@@ -86,9 +96,9 @@ impl SpriteManager<'_> {
         };
         SpriteManager {display, program, perspective, draw_parameters}
     }
-    pub fn build(&self, path:&Path, width: u32, height: u32) -> Sprite
+    pub fn new_sprite(&self, path:&Path, width: u32, height: u32) -> Sprite
     {
-        Sprite::from(path, self.perspective, self.display, width, height)
+        Sprite::from(path, self.display, width, height)
     }
 
     pub fn draw(&self, image: &Sprite, frame: &mut glium::Frame) {

@@ -17,29 +17,6 @@ impl Rect {
     pub fn from(width: u32, height: u32) -> Rect {
         Rect {left: 0.0, bottom: 0.0, width, height}
     }
-    pub fn with_position(mut self, left: f64, bottom: f64) -> Rect {
-        self.left = left;
-        self.bottom = bottom;
-        return self;
-    }
-    pub fn width(&self) -> u32 {
-        self.width
-    }
-    pub fn height(&self) -> u32 {
-        self.height
-    }
-    pub fn left(&self) -> f64 {
-        self.left
-    }
-    pub fn right(&self) -> f64 {
-        self.left + self.width as f64
-    }
-    pub fn bottom(&self) -> f64 {
-        self.bottom
-    }
-    pub fn top(&self) -> f64 {
-        self.bottom + self.height as f64
-    }
     /// Create a program from the two shaders.
     /// A "program" is just a bunch of shaders so you can have multiple programs
     /// for drawing different things.
@@ -53,17 +30,63 @@ impl Rect {
         None
     ).unwrap()
     }
-    pub fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
+}
+impl Rectangular for Rect {
+    fn get_rect(&self) -> &Rect {
+        self
+    }
+    fn get_rect_mut(&mut self) -> &mut Rect {
+        self
+    }
+}
+
+pub trait Rectangular {
+    fn get_rect(&self) -> &Rect;
+    fn get_rect_mut(&mut self) ->&mut Rect;
+    fn with_position <X, Y>(mut self, left: X, bottom: Y) -> Self
+    where
+        X: Into<f64>,
+        Y: Into<f64>,
+        Self: Sized
+    {
+        self.get_rect_mut().left = left.into();
+        self.get_rect_mut().bottom = bottom.into();
+        return self;
+    }
+    fn width(&self) -> u32 {
+        self.get_rect().width
+    }
+    fn height(&self) -> u32 {
+        self.get_rect().height
+    }
+    fn left(&self) -> f64 {
+        self.get_rect().left
+    }
+    fn right(&self) -> f64 {
+        self.get_rect().left + self.get_rect().width as f64
+    }
+    fn bottom(&self) -> f64 {
+        self.get_rect().bottom
+    }
+    fn top(&self) -> f64 {
+        self.get_rect().bottom + self.get_rect().height as f64
+    }
+    /// Create a program from the two shaders.
+    /// A "program" is just a bunch of shaders so you can have multiple programs
+    /// for drawing different things.
+    fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
+        let mut rect = self.get_rect_mut();
         let x = if let Some(x) = x {
-            self.left = x.into();
+            rect.left = x.into();
         };
         let y = if let Some(y) = y {
-            self.bottom = y.into();
+            rect.bottom = y.into();
         };
     }
-    pub fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
-        self.left += x.into();
-        self.bottom += y.into();
+    fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
+        let mut rect = self.get_rect_mut();
+        rect.left += x.into();
+        rect.bottom += y.into();
     }
 }
 

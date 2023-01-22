@@ -16,6 +16,7 @@ use engine::graphics::{Sprite, Vertex};
 use engine::graphics::sprite::SpriteManager;
 use engine::Rect;
 use engine::time::Clock;
+use engine::rect::Rectangular;
 
 const SCREEN_WIDTH: u32 = 1024;
 const SCREEN_HEIGHT: u32 = 768;
@@ -30,9 +31,9 @@ fn main() {
     let rect_program = Rect::drawing_program(&display);
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
-    let mut spr1 = sprite_manager.build(Path::new("fox.png"), 300, 300)
+    let mut spr1 = sprite_manager.new_sprite(Path::new("fox.png"), 300, 300)
         .with_position(0, 768);
-    let mut spr2 = sprite_manager.build(Path::new("wolf.png"), 500, 300)
+    let mut spr2 = sprite_manager.new_sprite(Path::new("wolf.png"), 500, 300)
         .with_position(1024, 768);
     let mut dt = 0;
     let mut fps = 60.0;
@@ -47,10 +48,10 @@ fn main() {
         dt = clock.get_time().as_millis();
         spr1.move_by(1, 0);
         spr2.move_by(-1, 0);
-        if spr1.get_rect().bottom() > 1024.0 {
+        if spr1.get_rect().left() > 1024.0 {
             spr1.move_ip(Some(0), None);
         }
-        if spr2.get_rect().bottom() < 0.0 {
+        if spr2.get_rect().left() < 0.0 {
             spr2.move_ip(Some(1024), None);
         }
 

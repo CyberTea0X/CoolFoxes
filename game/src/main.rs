@@ -12,8 +12,8 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 
-use engine::graphics::{Image, Vertex};
-use engine::graphics::image::ImageManager;
+use engine::graphics::{Sprite, Vertex};
+use engine::graphics::sprite::SpriteManager;
 use engine::Rect;
 use engine::time::Clock;
 
@@ -28,10 +28,11 @@ fn main() {
     let cb = glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
     let rect_program = Rect::drawing_program(&display);
-    let image_manager = ImageManager::from(&display, &rect_program,SCREEN_WIDTH, SCREEN_HEIGHT);
-    let mut img = image_manager.build(Path::new("fox.png"), 300, 300)
+    let sprite_manager = SpriteManager::from(&display, &rect_program,
+                                             SCREEN_WIDTH, SCREEN_HEIGHT);
+    let mut spr1 = sprite_manager.build(Path::new("fox.png"), 300, 300)
         .with_position(0, 768);
-    let mut img2 = image_manager.build(Path::new("wolf.png"), 500, 300)
+    let mut spr2 = sprite_manager.build(Path::new("wolf.png"), 500, 300)
         .with_position(1024, 768);
     let mut dt = 0;
     let mut fps = 60.0;
@@ -44,19 +45,19 @@ fn main() {
         frame_handling_start = Instant::now();
         println!("{}", dt);
         dt = clock.get_time().as_millis();
-        img.move_by(1, 0);
-        img2.move_by(-1, 0);
-        if img.get_rect().bottom() > 1024.0 {
-            img.move_ip(Some(0), None);
+        spr1.move_by(1, 0);
+        spr2.move_by(-1, 0);
+        if spr1.get_rect().bottom() > 1024.0 {
+            spr1.move_ip(Some(0), None);
         }
-        if img2.get_rect().bottom() < 0.0 {
-            img2.move_ip(Some(1024), None);
+        if spr2.get_rect().bottom() < 0.0 {
+            spr2.move_ip(Some(1024), None);
         }
 
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
-        image_manager.draw(&img, &mut frame);
-        image_manager.draw(&img2, &mut frame);
+        sprite_manager.draw(&spr1, &mut frame);
+        sprite_manager.draw(&spr2, &mut frame);
         frame.finish().unwrap();
 
         // Handles keyboard input.

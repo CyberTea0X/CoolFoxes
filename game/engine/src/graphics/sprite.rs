@@ -14,14 +14,14 @@ use crate::rect::Rect;
 type Uniforms <'a> = UniformsStorage<'a, &'a SrgbTexture2d, UniformsStorage<'a, [[f32; 4]; 4],
     EmptyUniforms>>;
 
-pub struct Image {
+pub struct Sprite {
     rect: Rect,
     pub texture: SrgbTexture2d,
 }
 
-impl Image {
+impl Sprite {
     pub fn from(path:&Path, perspective: [[f32; 4]; 4], display: &glium::Display,
-                   width: u32, height: u32) -> Image
+                   width: u32, height: u32) -> Sprite
     {
                         // Load the texture.
         let texture = {
@@ -33,7 +33,7 @@ impl Image {
             SrgbTexture2d::new(display, img).unwrap()
         };
         let rect = Rect::from(width, height);
-        return Image {rect, texture};
+        return Sprite {rect, texture};
 
     }
     pub fn from_rect(rect:glium::Rect) {}
@@ -52,23 +52,23 @@ impl Image {
     pub fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
         self.rect.move_by(x, y);
     }
-    pub fn with_position<T: Into<f64>>(mut self, x: T, y: T) -> Image {
+    pub fn with_position<T: Into<f64>>(mut self, x: T, y: T) -> Sprite {
         self.rect.move_ip(Some(x), Some(y));
         self
     }
 }
 
 
-pub struct ImageManager<'a> {
+pub struct SpriteManager<'a> {
     display: &'a glium::Display,
     program: &'a glium::Program,
     perspective: [[f32; 4]; 4],
     draw_parameters: glium::draw_parameters::DrawParameters<'a>,
 }
 
-impl ImageManager <'_> {
+impl SpriteManager<'_> {
     pub fn from<'a>(display: &'a glium::Display, program: &'a glium::Program,
-    screen_width: u32, screen_height: u32) -> ImageManager<'a> {
+    screen_width: u32, screen_height: u32) -> SpriteManager<'a> {
         let perspective = {
             let matrix: Matrix4<f32> = cgmath::ortho(
                 0.0,
@@ -84,14 +84,14 @@ impl ImageManager <'_> {
             blend: glium::draw_parameters::Blend::alpha_blending(),
             .. Default::default()
         };
-        ImageManager {display, program, perspective, draw_parameters}
+        SpriteManager {display, program, perspective, draw_parameters}
     }
-    pub fn build(&self, path:&Path, width: u32, height: u32) -> Image
+    pub fn build(&self, path:&Path, width: u32, height: u32) -> Sprite
     {
-        Image::from(path, self.perspective, self.display, width, height)
+        Sprite::from(path, self.perspective, self.display, width, height)
     }
 
-    pub fn draw(&self, image: &Image, frame: &mut glium::Frame) {
+    pub fn draw(&self, image: &Sprite, frame: &mut glium::Frame) {
         // Before we can draw the rectangle we have to
         // tell OpenGL what a rectangle is. All OpenGL needs
         // to know is that a rectangle is four vertexes (points)

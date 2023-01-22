@@ -1,6 +1,7 @@
 pub mod gui;
-pub mod image;
-pub use self::image::Image;
+pub mod sprite;
+
+pub use self::sprite::Sprite;
 use glium::implement_vertex;
 
 #[derive(Clone, Copy)]

@@ -8,7 +8,6 @@ pub mod sounds;
 pub mod rect;
 pub mod time;
 pub mod component;
-pub mod sprite;
 pub mod unit;
 
 pub use rect::Rect;

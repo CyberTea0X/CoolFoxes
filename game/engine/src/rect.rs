@@ -53,27 +53,26 @@ pub trait Rectangular {
         self.get_rect_mut().bottom = bottom.into();
         return self;
     }
+    fn left(&self) -> f64 {
+        self.get_rect().left
+    }
+    fn bottom(&self) -> f64 {
+        self.get_rect().bottom
+    }
     fn width(&self) -> u32 {
         self.get_rect().width
     }
     fn height(&self) -> u32 {
         self.get_rect().height
     }
-    fn left(&self) -> f64 {
-        self.get_rect().left
-    }
     fn right(&self) -> f64 {
-        self.get_rect().left + self.get_rect().width as f64
-    }
-    fn bottom(&self) -> f64 {
-        self.get_rect().bottom
+        self.left() + self.width() as f64
     }
     fn top(&self) -> f64 {
-        self.get_rect().bottom + self.get_rect().height as f64
+        self.bottom() + self.height() as f64
     }
-    /// Create a program from the two shaders.
-    /// A "program" is just a bunch of shaders so you can have multiple programs
-    /// for drawing different things.
+    fn x(&self) -> f64 {self.left()}
+    fn y(&self) -> f64 {self.bottom()}
     fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
         let mut rect = self.get_rect_mut();
         let x = if let Some(x) = x {

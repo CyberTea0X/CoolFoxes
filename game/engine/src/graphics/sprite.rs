@@ -4,9 +4,10 @@ use glium;
 use std::path::Path;
 use cgmath::Matrix4;
 use glium::backend::Facade;
-use glium::{Program, Surface, uniform};
+use glium::{Surface, uniform};
 use glium::texture::{SrgbTexture2d, Texture2dDataSource};
 use glium::uniforms::{EmptyUniforms, UniformsStorage};
+use crate::graphics::traits::{FrameList, Layered};
 use crate::graphics::Vertex;
 use crate::rect::{Rect, Rectangular};
 
@@ -26,45 +27,51 @@ pub struct Sprite {
 }
 
 impl Sprite {
+    pub fn new(rect: Rect, texture: SrgbTexture2d, frames_h: u32,
+               frames_v: u32, cur_frame: u32, layer: u32, hidden: bool) -> Sprite {
+        Sprite {rect, texture, frames_h, frames_v, cur_frame, layer, hidden}
+    }
     pub fn from(path:&Path, display: &glium::Display,
                    width: u32, height: u32) -> Sprite
     {
                         // Load the texture.
-        let texture = {
-            let img = image::open(path).unwrap().to_rgba16();
-            let img_dim = img.dimensions();
-            let img = glium::texture::RawImage2d::from_raw_rgba_reversed(&img.into_raw(),
-                                                                         img_dim);
-
-            SrgbTexture2d::new(display, img).unwrap()
-        };
+        let texture = Sprite::load_texture(path, display);
         let rect = Rect::from(width, height);
         return Sprite {rect, texture, frames_h:1, frames_v:1, cur_frame:1, layer:1, hidden:false};
-
     }
-    pub fn set_layer(&mut self, layer: u32) {
-        self.layer = layer;
-    }
-    pub fn at_layer(mut self, layer: u32) -> Sprite {
-        self.layer = layer;
-        self
-    }
-    pub fn set_frames(&mut self, frames_h: u32, frames_v: u32) {
-        self.frames_h = frames_h;
-        self.frames_v = frames_v;
-    }
-    pub fn with_frames(mut self, frames_h: u32, frames_v: u32) -> Sprite {
-        self.frames_h = frames_h;
-        self.frames_v = frames_v;
-        self
+    pub fn load_texture(path:&Path, display: &glium::Display) -> SrgbTexture2d {
+        let img = image::open(path).unwrap().to_rgba16();
+        let img_dim = img.dimensions();
+        let img = glium::texture::RawImage2d
+        ::from_raw_rgba_reversed(&img.into_raw(), img_dim);
+        SrgbTexture2d::new(display, img).unwrap()
     }
 }
+
 impl Rectangular for Sprite {
     fn get_rect(&self) -> &Rect {
         &self.rect
     }
     fn get_rect_mut(&mut self) -> &mut Rect {
         &mut self.rect
+    }
+}
+
+impl Layered for Sprite {
+    fn get_layer(&self) -> u32 {
+        self.layer
+    }
+    fn get_layer_mut(&mut self) -> &mut u32 {
+        &mut self.layer
+    }
+}
+
+impl FrameList for Sprite {
+    fn get_frames(&self) -> (u32, u32) {
+        (self.frames_h, self.frames_v)
+    }
+    fn get_frames_mut(&mut self) -> (&mut u32, &mut u32) {
+        (&mut self.frames_h, &mut self.frames_v)
     }
 }
 
@@ -79,22 +86,29 @@ pub struct SpriteManager<'a> {
 impl SpriteManager<'_> {
     pub fn from<'a>(display: &'a glium::Display, program: &'a glium::Program,
     screen_width: u32, screen_height: u32) -> SpriteManager<'a> {
-        let perspective = {
-            let matrix: Matrix4<f32> = cgmath::ortho(
-                0.0,
-                screen_width as f32,
-                screen_height as f32,
-                0.0,
-                -1.0,
-                1.0
-            );
-            Into::<[[f32; 4]; 4]>::into(matrix)
-        };
-        let draw_parameters = glium::DrawParameters {
+        SpriteManager {
+            display,
+            program,
+            perspective: SpriteManager::perspective_default(screen_width, screen_height),
+            draw_parameters: SpriteManager::draw_parameters_default()
+        }
+    }
+    pub fn draw_parameters_default() -> glium::DrawParameters<'static> {
+        glium::DrawParameters {
             blend: glium::draw_parameters::Blend::alpha_blending(),
             .. Default::default()
-        };
-        SpriteManager {display, program, perspective, draw_parameters}
+        }
+    }
+    pub fn perspective_default(screen_width: u32, screen_height: u32) -> [[f32; 4]; 4] {
+        let matrix: Matrix4<f32> = cgmath::ortho(
+            0.0,
+            screen_width as f32,
+            screen_height as f32,
+            0.0,
+            -1.0,
+            1.0
+        );
+        Into::<[[f32; 4]; 4]>::into(matrix)
     }
     pub fn new_sprite(&self, path:&Path, width: u32, height: u32) -> Sprite
     {

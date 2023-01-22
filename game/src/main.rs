@@ -36,7 +36,7 @@ fn main() {
     let mut spr2 = sprite_manager.new_sprite(Path::new("wolf.png"), 500, 300)
         .with_position(1024, 768);
     let mut dt = 0;
-    let mut fps = 60.0;
+    let fps = 60;
     let mut event_handling_start: Instant;
     let mut frame_handling_start: Instant;
     let mut running = true;
@@ -44,14 +44,14 @@ fn main() {
     while running {
         let mut frame = display.draw();
         frame_handling_start = Instant::now();
-        println!("{}", dt);
+        println!("delta time: {}", dt);
         dt = clock.get_time().as_millis();
         spr1.move_by(1, 0);
         spr2.move_by(-1, 0);
-        if spr1.get_rect().left() > 1024.0 {
+        if spr1.x() > 1024.0 {
             spr1.move_ip(Some(0), None);
         }
-        if spr2.get_rect().left() < 0.0 {
+        if spr2.x() < 0.0 {
             spr2.move_ip(Some(1024), None);
         }
 
@@ -64,7 +64,7 @@ fn main() {
         // Handles keyboard input.
         event_handling_start = Instant::now();
 
-        // Большая и ужасная обработка событий и времени между кадрами
+        // Большая и страшная обработка событий и времени между кадрами
         event_loop.run_return(|event, _, control_flow|{
             match event {
                 glutin::event::Event::WindowEvent { event, .. } => match event {
@@ -83,15 +83,15 @@ fn main() {
                 _ => return,
             }
             if (event_handling_start.elapsed() + frame_handling_start.elapsed()) >
-                (Duration::from_secs(1) / 60) {
+                Duration::from_secs(1) / fps {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
                 return;
             }
-            let next_frame_time = std::time::Instant::now() +
-                (Duration::from_secs(1) / 60 -
-                (event_handling_start.elapsed() + frame_handling_start.elapsed()));
+            let wait_duration = (Duration::from_secs(1) / fps)
+                .checked_sub(event_handling_start.elapsed() + frame_handling_start.elapsed())
+                .unwrap_or(Duration::from_secs(0));
+            let next_frame_time = Instant::now() + wait_duration;
             *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
-
     });
     }
 }

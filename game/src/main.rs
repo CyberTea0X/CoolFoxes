@@ -32,10 +32,12 @@ fn main() {
     let rect_program = Rect::drawing_program(&display);
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
-    let mut spr1 = sprite_manager.new_sprite(Path::new("fox.png"), 300, 300)
+    let mut spr1 = sprite_manager.new_sprite(Path::new("fox.png"), 90, 90)
         .with_position(0, 768);
-    let mut spr2 = sprite_manager.new_sprite(Path::new("wolf.png"), 500, 300)
-        .with_position(1024, 768);
+    let mut target = sprite_manager.new_sprite(Path::new("target.png"), 150, 90)
+        .with_position(SCREEN_WIDTH-150, 768);
+    let mut bg = sprite_manager.new_sprite(Path::new("bg.png"), 1024, 768)
+        .with_position(0, 768);
     let mut dt = 0;
     let fps = 60;
     let mut event_handling_start: Instant;
@@ -47,19 +49,11 @@ fn main() {
         frame_handling_start = Instant::now();
         println!("delta time: {}", dt);
         dt = clock.get_time().as_millis();
-        spr1.move_by(1, 0);
-        spr2.move_by(-1, 0);
-        if spr1.x() > 1024.0 {
-            spr1.move_ip(Some(0), None);
-        }
-        if spr2.right() < 0.0 {
-            spr2.move_ip(Some(1024), None);
-        }
-
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
+        sprite_manager.draw(&bg, &mut frame);
         sprite_manager.draw(&spr1, &mut frame);
-        sprite_manager.draw(&spr2, &mut frame);
+        sprite_manager.draw(&target, &mut frame);
         frame.finish().unwrap();
 
         // Handles keyboard input.

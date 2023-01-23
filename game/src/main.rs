@@ -14,6 +14,7 @@ use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 
 use engine::graphics::{Sprite, Vertex};
 use engine::graphics::sprite::SpriteManager;
+use engine::group::Group;
 use engine::Rect;
 use engine::time::Clock;
 use engine::rect::Rectangular;
@@ -51,7 +52,7 @@ fn main() {
         if spr1.x() > 1024.0 {
             spr1.move_ip(Some(0), None);
         }
-        if spr2.x() < 0.0 {
+        if spr2.right() < 0.0 {
             spr2.move_ip(Some(1024), None);
         }
 

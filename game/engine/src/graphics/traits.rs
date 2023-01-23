@@ -1,3 +1,4 @@
+
 pub trait Layered {
     fn get_layer(&self) -> u32;
     fn get_layer_mut(&mut self) -> &mut u32;

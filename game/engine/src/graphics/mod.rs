@@ -6,6 +6,7 @@ pub use self::sprite::Sprite;
 use glium::implement_vertex;
 
 #[derive(Clone, Copy)]
+/// Вершина которая описывается двумя значениями x и y
 pub struct Vertex {
     // The fields in Vertex are usually there
     // to be passed into the shader file.

@@ -15,6 +15,8 @@ use crate::rect::{Rect, Rectangular};
 type Uniforms <'a> = UniformsStorage<'a, &'a SrgbTexture2d, UniformsStorage<'a, [[f32; 4]; 4],
     EmptyUniforms>>;
 
+/// Спрайт - это текстура и квадрат, в котором эта текстура рисуется.
+/// У спрайта есть слой, на котором он рисуется.
 pub struct Sprite {
     rect: Rect,
     texture: SrgbTexture2d,
@@ -27,10 +29,13 @@ pub struct Sprite {
 }
 
 impl Sprite {
+    /// Создаёт спрайт с нуля с заданными параметрами, квадратом и тп
     pub fn new(rect: Rect, texture: SrgbTexture2d, frames_h: u32,
                frames_v: u32, cur_frame: u32, layer: u32, hidden: bool) -> Sprite {
         Sprite {rect, texture, frames_h, frames_v, cur_frame, layer, hidden}
     }
+    /// Создаёт спрайт, загружая его картинку из файла по указанному пути
+    /// аттрибуты width и height это ширина и высота спрайта
     pub fn from(path:&Path, display: &glium::Display,
                    width: u32, height: u32) -> Sprite
     {
@@ -39,6 +44,7 @@ impl Sprite {
         let rect = Rect::from(width, height);
         return Sprite {rect, texture, frames_h:1, frames_v:1, cur_frame:1, layer:1, hidden:false};
     }
+    /// Загружает текстуру из файла по указанному пути
     pub fn load_texture(path:&Path, display: &glium::Display) -> SrgbTexture2d {
         let img = image::open(path).unwrap().to_rgba16();
         let img_dim = img.dimensions();
@@ -75,7 +81,7 @@ impl FrameList for Sprite {
     }
 }
 
-
+/// SpriteManager занимается отрисовкой любых спрайтов на экране. Упрощает отрисовку.
 pub struct SpriteManager<'a> {
     display: &'a glium::Display,
     program: &'a glium::Program,
@@ -84,6 +90,8 @@ pub struct SpriteManager<'a> {
 }
 
 impl SpriteManager<'_> {
+    /// Создаёт новый экземпляр SpriteManager из ссылки на дисплей, прогромму для рисования,
+    /// также требует параметры экрана.
     pub fn from<'a>(display: &'a glium::Display, program: &'a glium::Program,
     screen_width: u32, screen_height: u32) -> SpriteManager<'a> {
         SpriteManager {
@@ -93,12 +101,14 @@ impl SpriteManager<'_> {
             draw_parameters: SpriteManager::draw_parameters_default()
         }
     }
+    /// Создаёт дефолтные параметры рисования спрайтов
     pub fn draw_parameters_default() -> glium::DrawParameters<'static> {
         glium::DrawParameters {
             blend: glium::draw_parameters::Blend::alpha_blending(),
             .. Default::default()
         }
     }
+    /// Возвращает перспективу по умолчанию
     pub fn perspective_default(screen_width: u32, screen_height: u32) -> [[f32; 4]; 4] {
         let matrix: Matrix4<f32> = cgmath::ortho(
             0.0,
@@ -110,12 +120,15 @@ impl SpriteManager<'_> {
         );
         Into::<[[f32; 4]; 4]>::into(matrix)
     }
+    /// Создаёт новый спрайт, передавая ему путь, ширину и высоту спрайта, а ещё свою ссылку на
+    /// дисплей
     pub fn new_sprite(&self, path:&Path, width: u32, height: u32) -> Sprite
     {
         Sprite::from(path, self.display, width, height)
     }
 
-    pub fn draw(&self, image: &Sprite, frame: &mut glium::Frame) {
+    /// Рисует спрайт на указанном фрейме
+    pub fn draw(&self, sprite: &Sprite, frame: &mut glium::Frame) {
         // Before we can draw the rectangle we have to
         // tell OpenGL what a rectangle is. All OpenGL needs
         // to know is that a rectangle is four vertexes (points)
@@ -149,7 +162,7 @@ impl SpriteManager<'_> {
         };
         // Dynamically set the rectangle's vertices.
         {
-            let rect = image.get_rect();
+            let rect = sprite.get_rect();
             let left = rect.left();
             let right = rect.left() + rect.width() as f64;
             let bottom = rect.bottom();
@@ -165,7 +178,7 @@ impl SpriteManager<'_> {
         }
         let uniforms = uniform! {
             projection: self.perspective,
-            tex: &image.texture,
+            tex: &sprite.texture,
         };
         frame.draw(
                 &rect_vertices,

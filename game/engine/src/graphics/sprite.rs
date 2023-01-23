@@ -4,9 +4,10 @@ use glium;
 use std::path::Path;
 use cgmath::Matrix4;
 use glium::backend::Facade;
-use glium::{Surface, uniform};
+use glium::{BlendingFunction, Surface, uniform};
 use glium::texture::{SrgbTexture2d, Texture2dDataSource};
 use glium::uniforms::{EmptyUniforms, UniformsStorage};
+use glium::draw_parameters::LinearBlendingFactor;
 use crate::graphics::traits::{FrameList, Layered};
 use crate::graphics::Vertex;
 use crate::rect::{Rect, Rectangular};
@@ -104,7 +105,20 @@ impl SpriteManager<'_> {
     /// Создаёт дефолтные параметры рисования спрайтов
     pub fn draw_parameters_default() -> glium::DrawParameters<'static> {
         glium::DrawParameters {
-            blend: glium::draw_parameters::Blend::alpha_blending(),
+            blend: glium::draw_parameters::Blend
+            {
+                color: BlendingFunction::Addition
+                {
+                    source: LinearBlendingFactor::SourceAlpha,
+                    destination: LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                alpha: BlendingFunction::Addition
+                {
+                    source: LinearBlendingFactor::SourceAlpha,
+                    destination: LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                constant_value: (0.0, 0.0, 0.0, 0.0)
+            },
             .. Default::default()
         }
     }

@@ -22,7 +22,8 @@ impl <T> Group<T> {
     where F: FnMut(T) -> T
     {
         let mut element: T;
-        for el in &mut self.elements {
+        for i in (0..self.elements.len()).rev() {
+            let el = &mut self.elements[i];
             if let None = el {
                 continue;
             }

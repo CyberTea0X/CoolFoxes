@@ -33,12 +33,12 @@ fn main() {
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = Group::new();
-    sprites.put(sprite_manager.new_sprite(Path::new("bg.png"), 1024, 768)
-        .with_position(0, 768));
     sprites.put(sprite_manager.new_sprite(Path::new("fox.png"), 90, 90)
         .with_position(0, 768));
     sprites.put(sprite_manager.new_sprite(Path::new("target.png"), 150, 90)
         .with_position(SCREEN_WIDTH-150, 768));
+    sprites.put(sprite_manager.new_sprite(Path::new("bg.png"), 1024, 768)
+        .with_position(0, 768));
     let mut dt = 0;
     let fps = 60;
     let mut event_handling_start: Instant;

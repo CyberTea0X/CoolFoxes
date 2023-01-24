@@ -4,6 +4,7 @@ use glium::backend::Facade;
 use rand::distributions::hidden_export::IntoFloat;
 
 /// Квадрат, у которого есть left это x, а bottom это y, а также есть ширина и высота
+#[derive(Clone, Copy)]
 pub struct Rect {
     left: f64,
     bottom: f64,

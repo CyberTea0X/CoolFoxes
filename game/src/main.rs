@@ -32,18 +32,20 @@ fn main() {
     let rect_program = Rect::drawing_program(&display);
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
-    let mut spr1 = sprite_manager.new_sprite(Path::new("fox.png"), 90, 90)
-        .with_position(0, 768);
-    let mut target = sprite_manager.new_sprite(Path::new("target.png"), 150, 90)
-        .with_position(SCREEN_WIDTH-150, 768);
-    let mut bg = sprite_manager.new_sprite(Path::new("bg.png"), 1024, 768)
-        .with_position(0, 768);
+    let mut sprites = Group::new();
+    sprites.put(sprite_manager.new_sprite(Path::new("bg.png"), 1024, 768)
+        .with_position(0, 768));
+    sprites.put(sprite_manager.new_sprite(Path::new("fox.png"), 90, 90)
+        .with_position(0, 768));
+    sprites.put(sprite_manager.new_sprite(Path::new("target.png"), 150, 90)
+        .with_position(SCREEN_WIDTH-150, 768));
     let mut dt = 0;
     let fps = 60;
     let mut event_handling_start: Instant;
     let mut frame_handling_start: Instant;
     let mut running = true;
     let mut clock = Clock::new();
+    let mut move_direction = 1;
     while running {
         let mut frame = display.draw();
         frame_handling_start = Instant::now();
@@ -51,9 +53,18 @@ fn main() {
         dt = clock.get_time().as_millis();
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
-        sprite_manager.draw(&bg, &mut frame);
-        sprite_manager.draw(&spr1, &mut frame);
-        sprite_manager.draw(&target, &mut frame);
+        // sprite_manager.draw(&bg, &mut frame);
+        // sprite_manager.draw(&spr1, &mut frame);
+        // sprite_manager.draw(&target, &mut frame);
+        sprites.call(|mut sprite| {
+            if sprite.x() > SCREEN_WIDTH as f64 || sprite.right() < 0.0 {
+                move_direction = -move_direction;
+            }
+            sprite.move_by(move_direction, 0);
+            sprite_manager.draw(&sprite, &mut frame);
+            sprite
+        }
+        );
         frame.finish().unwrap();
 
         // Handles keyboard input.

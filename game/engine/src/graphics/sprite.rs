@@ -8,7 +8,7 @@ use glium::{BlendingFunction, Surface, uniform};
 use glium::texture::{SrgbTexture2d, Texture2dDataSource};
 use glium::uniforms::{EmptyUniforms, UniformsStorage};
 use glium::draw_parameters::LinearBlendingFactor;
-use crate::graphics::traits::{FrameList, Layered};
+use crate::traits::graphics::{FrameList, Layered};
 use crate::graphics::Vertex;
 use crate::rect::{Rect, Rectangular};
 
@@ -52,6 +52,9 @@ impl Sprite {
         let img = glium::texture::RawImage2d
         ::from_raw_rgba_reversed(&img.into_raw(), img_dim);
         SrgbTexture2d::new(display, img).unwrap()
+    }
+    pub fn updated(self) -> Sprite {
+        return self
     }
 }
 

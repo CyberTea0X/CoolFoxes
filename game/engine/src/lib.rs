@@ -10,6 +10,7 @@ pub mod time;
 pub mod component;
 pub mod unit;
 pub mod group;
+pub mod traits;
 
 pub use rect::Rect;
 

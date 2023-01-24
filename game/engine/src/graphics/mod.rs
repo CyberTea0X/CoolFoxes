@@ -1,6 +1,5 @@
 pub mod gui;
 pub mod sprite;
-pub mod traits;
 
 pub use self::sprite::Sprite;
 use glium::implement_vertex;

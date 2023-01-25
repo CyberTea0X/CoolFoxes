@@ -1,23 +1,20 @@
-#[macro_use]
-extern crate glium;
 extern crate cgmath;
+extern crate glium;
 extern crate image;
 
-use cgmath::{Vector2, Matrix4};
-use glium::glutin;
-use glium::{Surface};
-use std::io::Cursor;
-use glium::glutin::dpi::PhysicalSize;
 use std::path::Path;
 use std::time::{Duration, Instant};
-use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 
-use engine::graphics::{Sprite, Vertex};
+use glium::glutin;
+use glium::glutin::dpi::PhysicalSize;
+use glium::glutin::platform::run_return::EventLoopExtRunReturn;
+use glium::Surface;
+
 use engine::graphics::sprite::SpriteManager;
 use engine::group::Group;
 use engine::Rect;
-use engine::time::Clock;
 use engine::rect::Rectangular;
+use engine::time::Clock;
 
 const SCREEN_WIDTH: u32 = 1024;
 const SCREEN_HEIGHT: u32 = 768;

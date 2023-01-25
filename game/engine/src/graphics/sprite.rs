@@ -1,21 +1,14 @@
-use std::io::Cursor;
-use std::mem::swap;
-use glium;
 use std::path::Path;
+
 use cgmath::Matrix4;
-use glium::backend::Facade;
+use glium;
 use glium::{BlendingFunction, Surface, uniform};
-use glium::texture::{SrgbTexture2d, Texture2dDataSource};
-use glium::uniforms::{EmptyUniforms, UniformsStorage};
 use glium::draw_parameters::LinearBlendingFactor;
-use crate::traits::graphics::{FrameList, Layered};
+use glium::texture::SrgbTexture2d;
+
 use crate::graphics::Vertex;
-use crate::group::Group;
 use crate::rect::{Rect, Rectangular};
-
-
-type Uniforms <'a> = UniformsStorage<'a, &'a SrgbTexture2d, UniformsStorage<'a, [[f32; 4]; 4],
-    EmptyUniforms>>;
+use crate::traits::graphics::{FrameList, Layered};
 
 /// Спрайт - это текстура и квадрат, в котором эта текстура рисуется.
 /// У спрайта есть слой, на котором он рисуется.
@@ -24,9 +17,9 @@ pub struct Sprite {
     texture: SrgbTexture2d,
     frames_h: u32,
     frames_v: u32,
-    cur_frame: u32,
+    _cur_frame: u32,
     layer: u32,
-    hidden: bool,
+    _hidden: bool,
     //components
 }
 
@@ -34,7 +27,7 @@ impl Sprite {
     /// Создаёт спрайт с нуля с заданными параметрами, квадратом и тп
     pub fn new(rect: Rect, texture: SrgbTexture2d, frames_h: u32,
                frames_v: u32, cur_frame: u32, layer: u32, hidden: bool) -> Sprite {
-        Sprite {rect, texture, frames_h, frames_v, cur_frame, layer, hidden}
+        Sprite {rect, texture, frames_h, frames_v, _cur_frame: cur_frame, layer, _hidden: hidden }
     }
     /// Создаёт спрайт, загружая его картинку из файла по указанному пути
     /// аттрибуты width и height это ширина и высота спрайта
@@ -44,7 +37,7 @@ impl Sprite {
                         // Load the texture.
         let texture = Sprite::load_texture(path, display);
         let rect = Rect::from(width, height);
-        return Sprite {rect, texture, frames_h:1, frames_v:1, cur_frame:1, layer:1, hidden:false};
+        return Sprite {rect, texture, frames_h:1, frames_v:1, _cur_frame:1, layer:1, _hidden:false};
     }
     /// Загружает текстуру из файла по указанному пути
     pub fn load_texture(path:&Path, display: &glium::Display) -> SrgbTexture2d {

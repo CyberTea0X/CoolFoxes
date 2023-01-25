@@ -13,7 +13,7 @@ impl <T> Group<T> {
         self.elements.reserve(additional)
     }
     /// Кладёт элемент в группу, группа забирает себе элемент полностью, никаких ссылок!
-    pub fn put(&mut self, mut element: T) {
+    pub fn put(&mut self, element: T) {
         self.elements.push(Some(element));
     }
     /// Вызывает closure для каждого элемента в группе.

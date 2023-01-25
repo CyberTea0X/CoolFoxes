@@ -1,8 +1,9 @@
-pub mod gui;
-pub mod sprite;
+use glium::implement_vertex;
 
 pub use self::sprite::Sprite;
-use glium::implement_vertex;
+
+pub mod gui;
+pub mod sprite;
 
 #[derive(Clone, Copy)]
 /// Вершина которая описывается двумя значениями x и y

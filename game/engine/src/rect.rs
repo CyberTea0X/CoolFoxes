@@ -1,7 +1,4 @@
-use cgmath::Bounded;
-use cgmath::num_traits::ToPrimitive;
 use glium::backend::Facade;
-use rand::distributions::hidden_export::IntoFloat;
 
 /// Квадрат, у которого есть left это x, а bottom это y, а также есть ширина и высота
 #[derive(Clone, Copy)]
@@ -93,10 +90,10 @@ pub trait Rectangular {
     /// Для координат, которые вы не собираетесь менять, можно указать значение None
     fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
         let mut rect = self.get_rect_mut();
-        let x = if let Some(x) = x {
+        if let Some(x) = x {
             rect.left = x.into();
         };
-        let y = if let Some(y) = y {
+        if let Some(y) = y {
             rect.bottom = y.into();
         };
     }

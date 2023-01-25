@@ -31,4 +31,11 @@ impl <T> Group<T> {
             el.replace(element);
         }
     }
+    /// Забирает элемент из группы и возвращает его
+    pub fn take_el(&mut self, i: usize) -> Option<T> {
+        assert!(i < self.elements.len(), "Элемента с индексом {i} не существует");
+        let i_last = self.elements.len() -1;
+        self.elements.swap(i, i_last);
+        self.elements.pop().unwrap()
+    }
 }

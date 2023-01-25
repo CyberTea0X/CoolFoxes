@@ -7,6 +7,7 @@ use glium::draw_parameters::LinearBlendingFactor;
 use glium::texture::SrgbTexture2d;
 
 use crate::graphics::Vertex;
+use crate::loader::TextureLoader;
 use crate::rect::{Rect, Rectangular};
 use crate::traits::graphics::{FrameList, Layered};
 
@@ -35,17 +36,9 @@ impl Sprite {
                    width: u32, height: u32) -> Sprite
     {
                         // Load the texture.
-        let texture = Sprite::load_texture(path, display);
+        let texture = TextureLoader::load_rgba_texture(path, display);
         let rect = Rect::from(width, height);
         return Sprite {rect, texture, frames_h:1, frames_v:1, _cur_frame:1, layer:1, _hidden:false};
-    }
-    /// Загружает текстуру из файла по указанному пути
-    pub fn load_texture(path:&Path, display: &glium::Display) -> SrgbTexture2d {
-        let img = image::open(path).unwrap().to_rgba16();
-        let img_dim = img.dimensions();
-        let img = glium::texture::RawImage2d
-        ::from_raw_rgba_reversed(&img.into_raw(), img_dim);
-        SrgbTexture2d::new(display, img).unwrap()
     }
     pub fn updated(self) -> Sprite {
         return self

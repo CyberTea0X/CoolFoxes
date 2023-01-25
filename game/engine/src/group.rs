@@ -31,12 +31,23 @@ impl <T> Group<T> {
             el.replace(element);
         }
     }
+    /// Забирает элемент из группы и возвращает его
+    pub fn take_el(&mut self, i: usize) -> Option<T> {
+        assert!(i < self.elements.len(), "Элемента с индексом {i} не существует");
+        let i_last = self.elements.len() -1;
+        self.elements.swap(i, i_last);
+        self.elements.pop().unwrap()
+    }
 }
 trait GetElements <T> {
     fn get_elements(&self) -> &Vec<T>;
     fn get_elements_mut(&self) -> &mut Vec<T>;
 }
 
-trait SomeGroup<T>:GetElements<T> {
+trait GetElements <T> {
+    fn get_elements(&self) -> &Vec<T>;
+    fn get_elements_mut(&self) -> &mut Vec<T>;
+}
 
+trait SomeGroup<T>:GetElements<T> {
 }

@@ -1,9 +1,10 @@
 use std::path::Path;
 
-use cgmath::Matrix4;
+use cgmath::{Matrix4, Point2};
 use glium;
 use glium::{BlendingFunction, Surface, uniform};
 use glium::draw_parameters::LinearBlendingFactor;
+use glium::glutin::dpi::{LogicalPosition, LogicalSize, PhysicalSize};
 use glium::texture::SrgbTexture2d;
 
 use crate::graphics::Vertex;
@@ -25,20 +26,8 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    /// Создаёт спрайт с нуля с заданными параметрами, квадратом и тп
-    pub fn new(rect: Rect, texture: SrgbTexture2d, frames_h: u32,
-               frames_v: u32, cur_frame: u32, layer: u32, hidden: bool) -> Sprite {
-        Sprite {rect, texture, frames_h, frames_v, _cur_frame: cur_frame, layer, _hidden: hidden }
-    }
-    /// Создаёт спрайт, загружая его картинку из файла по указанному пути
-    /// аттрибуты width и height это ширина и высота спрайта
-    pub fn from(path:&Path, display: &glium::Display,
-                   width: u32, height: u32) -> Sprite
-    {
-                        // Load the texture.
-        let texture = TextureLoader::load_rgba_texture(path, display);
-        let rect = Rect::from(width, height);
-        return Sprite {rect, texture, frames_h:1, frames_v:1, _cur_frame:1, layer:1, _hidden:false};
+    pub fn new (rect: Rect, texture: SrgbTexture2d, frames_h: u32, frames_v: u32, _cur_frame: u32, layer: u32, _hidden: bool) -> Self {
+        Sprite { rect, texture, frames_h, frames_v, _cur_frame, layer, _hidden }
     }
     pub fn updated(self) -> Sprite {
         return self
@@ -78,6 +67,8 @@ pub struct SpriteManager<'a> {
     program: &'a glium::Program,
     perspective: [[f32; 4]; 4],
     draw_parameters: glium::draw_parameters::DrawParameters<'a>,
+    screen_size: PhysicalSize<u32>,
+    screen_ratio: f64,
 }
 
 impl SpriteManager<'_> {
@@ -89,48 +80,34 @@ impl SpriteManager<'_> {
             display,
             program,
             perspective: SpriteManager::perspective_default(screen_width, screen_height),
-            draw_parameters: SpriteManager::draw_parameters_default()
+            draw_parameters: SpriteManager::draw_parameters_default(),
+            screen_size: PhysicalSize::new(screen_width, screen_height),
+            screen_ratio: screen_width as f64 / screen_height as f64,
         }
     }
-    /// Создаёт дефолтные параметры рисования спрайтов
-    pub fn draw_parameters_default() -> glium::DrawParameters<'static> {
-        glium::DrawParameters {
-            blend: glium::draw_parameters::Blend
-            {
-                color: BlendingFunction::Addition
-                {
-                    source: LinearBlendingFactor::SourceAlpha,
-                    destination: LinearBlendingFactor::OneMinusSourceAlpha,
-                },
-                alpha: BlendingFunction::Addition
-                {
-                    source: LinearBlendingFactor::SourceAlpha,
-                    destination: LinearBlendingFactor::OneMinusSourceAlpha,
-                },
-                constant_value: (0.0, 0.0, 0.0, 0.0)
-            },
-            .. Default::default()
-        }
-    }
-    /// Возвращает перспективу по умолчанию
-    pub fn perspective_default(screen_width: u32, screen_height: u32) -> [[f32; 4]; 4] {
-        let matrix: Matrix4<f32> = cgmath::ortho(
-            0.0,
-            screen_width as f32,
-            screen_height as f32,
-            0.0,
-            -1.0,
-            1.0
-        );
-        Into::<[[f32; 4]; 4]>::into(matrix)
-    }
-    /// Создаёт новый спрайт, передавая ему путь, ширину и высоту спрайта, а ещё свою ссылку на
-    /// дисплей
-    pub fn new_sprite(&self, path:&Path, width: u32, height: u32) -> Sprite
+    /// Создаёт спрайт, загружая его картинку из файла по указанному пути
+    /// аттрибуты width и height это ширина и высота спрайта
+    pub fn build_sprite(&self, path:&Path, scale: f64) -> Sprite
     {
-        Sprite::from(path, self.display, width, height)
+        let texture = TextureLoader::load_rgba_texture(path, self.display);
+        let rect = Rect::from_scaled(texture.dimensions(), scale);
+        Sprite::new(rect, texture, 1, 1, 1, 1, false)
     }
-
+    /// Создаёт новый спрайт, передавая ему все необходимые данные.
+    pub fn new_sprite(&self, frames_h: u32, frames_v: u32, _cur_frame: u32,
+                      layer: u32, _hidden: bool, path:&Path, scale: f64) -> Sprite
+    {
+        let texture = TextureLoader::load_rgba_texture(path, self.display);
+        let rect = Rect::from_scaled(texture.dimensions(), scale);
+        Sprite::new(rect, texture, frames_h, frames_v, _cur_frame, layer, _hidden)
+    }
+    /// Создаёт новый спрайт для фона
+    pub fn build_bg(&self, path:&Path) -> Sprite {
+        let texture = TextureLoader::load_rgba_texture(path, self.display);
+        let rect = Rect::new(Point2::new(0.0, 0.0),
+        PhysicalSize::new(self.screen_size.width as f64, self.screen_size.height as f64));
+        Sprite::new(rect, texture, 1, 1, 1, 0, false)
+    }
     /// Рисует спрайт на указанном фрейме
     pub fn draw(&self, sprite: &Sprite, frame: &mut glium::Frame) {
         // Before we can draw the rectangle we have to
@@ -191,5 +168,37 @@ impl SpriteManager<'_> {
                 &uniforms,
                 &self.draw_parameters
         ).unwrap();
+    }
+    /// Задаёт дефолтные параметры рисования спрайтов
+    pub fn draw_parameters_default() -> glium::DrawParameters<'static> {
+        glium::DrawParameters {
+            blend: glium::draw_parameters::Blend
+            {
+                color: BlendingFunction::Addition
+                {
+                    source: LinearBlendingFactor::SourceAlpha,
+                    destination: LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                alpha: BlendingFunction::Addition
+                {
+                    source: LinearBlendingFactor::SourceAlpha,
+                    destination: LinearBlendingFactor::OneMinusSourceAlpha,
+                },
+                constant_value: (0.0, 0.0, 0.0, 0.0)
+            },
+            .. Default::default()
+        }
+    }
+    /// Возвращает перспективу по умолчанию
+    pub fn perspective_default(screen_width: u32, screen_height: u32) -> [[f32; 4]; 4] {
+        let matrix: Matrix4<f32> = cgmath::ortho(
+            0.0,
+            screen_width as f32,
+            screen_height as f32,
+            0.0,
+            -1.0,
+            1.0
+        );
+        Into::<[[f32; 4]; 4]>::into(matrix)
     }
 }

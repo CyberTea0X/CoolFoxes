@@ -6,8 +6,10 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 use glium::glutin;
+use glium::glutin::dpi::LogicalSize;
 use glium::glutin::dpi::PhysicalSize;
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
+use glium::glutin::window::CursorIcon::SResize;
 use glium::Surface;
 
 use engine::graphics::sprite::SpriteManager;
@@ -16,7 +18,7 @@ use engine::programs::ProgramManager;
 use engine::rect::Rectangular;
 use engine::time::Clock;
 
-const SCREEN_WIDTH: u32 = 1024;
+const SCREEN_WIDTH: u32 = 1224;
 const SCREEN_HEIGHT: u32 = 768;
 
 fn main() {
@@ -30,11 +32,11 @@ fn main() {
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = Group::new();
-    sprites.put(sprite_manager.new_sprite(Path::new("fox.png"), 90, 90)
+    sprites.put(sprite_manager.build_sprite(Path::new("fox.png"), 0.15)
         .with_position(0, 768));
-    sprites.put(sprite_manager.new_sprite(Path::new("target.png"), 150, 90)
+    sprites.put(sprite_manager.build_sprite(Path::new("target.png"), 0.15)
         .with_position(SCREEN_WIDTH-150, 768));
-    sprites.put(sprite_manager.new_sprite(Path::new("bg.png"), 1024, 768)
+    sprites.put(sprite_manager.build_bg(Path::new("bg.png"))
         .with_position(0, 768));
     let mut dt = 0;
     let fps = 60;
@@ -69,22 +71,22 @@ fn main() {
 
         // Большая и страшная обработка событий и времени между кадрами
         event_loop.run_return(|event, _, control_flow|{
-            match event {
-                glutin::event::Event::WindowEvent { event, .. } => match event {
-                    glutin::event::WindowEvent::CloseRequested => {
-                        *control_flow = glutin::event_loop::ControlFlow::Exit;
+        match event {
+            glutin::event::Event::WindowEvent { event, .. } => match event {
+                glutin::event::WindowEvent::CloseRequested => {
+                    *control_flow = glutin::event_loop::ControlFlow::Exit;
                         running = false;
-                        return;
-                    },
-                    _ => return,
-                },
-                glutin::event::Event::NewEvents(cause) => match cause {
-                    glutin::event::StartCause::ResumeTimeReached { .. } => (),
-                    glutin::event::StartCause::Init => (),
-                    _ => return,
+                    return;
                 },
                 _ => return,
-            }
+            },
+            glutin::event::Event::NewEvents(cause) => match cause {
+                glutin::event::StartCause::ResumeTimeReached { .. } => (),
+                glutin::event::StartCause::Init => (),
+                _ => return,
+            },
+            _ => return,
+        }
             if (event_handling_start.elapsed() + frame_handling_start.elapsed()) >
                 Duration::from_secs(1) / fps {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;

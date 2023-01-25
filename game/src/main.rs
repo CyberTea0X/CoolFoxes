@@ -12,7 +12,7 @@ use glium::Surface;
 
 use engine::graphics::sprite::SpriteManager;
 use engine::group::Group;
-use engine::Rect;
+use engine::programs::ProgramManager;
 use engine::rect::Rectangular;
 use engine::time::Clock;
 
@@ -26,7 +26,7 @@ fn main() {
         .with_title(format!("Hello world!"));
     let cb = glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
-    let rect_program = Rect::drawing_program(&display);
+    let rect_program = ProgramManager::rect_drawing_program(&display);
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = Group::new();

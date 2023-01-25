@@ -11,6 +11,8 @@ pub mod component;
 pub mod unit;
 pub mod group;
 pub mod traits;
+pub mod loader;
+pub mod programs;
 
 pub use rect::Rect;
 

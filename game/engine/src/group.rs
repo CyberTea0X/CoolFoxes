@@ -44,10 +44,5 @@ trait GetElements <T> {
     fn get_elements_mut(&self) -> &mut Vec<T>;
 }
 
-trait GetElements <T> {
-    fn get_elements(&self) -> &Vec<T>;
-    fn get_elements_mut(&self) -> &mut Vec<T>;
-}
-
 trait SomeGroup<T>:GetElements<T> {
 }

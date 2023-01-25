@@ -10,6 +10,7 @@ use glium::uniforms::{EmptyUniforms, UniformsStorage};
 use glium::draw_parameters::LinearBlendingFactor;
 use crate::traits::graphics::{FrameList, Layered};
 use crate::graphics::Vertex;
+use crate::group::Group;
 use crate::rect::{Rect, Rectangular};
 
 

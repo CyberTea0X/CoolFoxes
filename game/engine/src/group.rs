@@ -9,21 +9,37 @@ impl <T> Group<T> {
     pub fn from(elements: Vec<T>) -> Group<T> {
         Group {elements: elements.into_iter().map(|s| Some(s)).collect()}
     }
-    pub fn reserve(&mut self, additional: usize) {
-        self.elements.reserve(additional)
+}
+
+impl <T> SomeGroup<T> for Group<T> {
+    fn get_elements(&self) -> &Vec<Option<T>> {
+        &self.elements
+    }
+    fn get_elements_mut(&mut self) -> &mut Vec<Option<T>> {
+        &mut self.elements
+    }
+}
+
+pub trait SomeGroup<T> {
+    /// Возвращает ссылку на вектор элементов
+    fn get_elements(&self) -> &Vec<Option<T>>;
+    /// Возвращает изменяемую ссылку на вектор элементов
+    fn get_elements_mut(&mut self) -> &mut Vec<Option<T>>;
+    fn reserve(&mut self, additional: usize) {
+        self.get_elements_mut().reserve(additional)
     }
     /// Кладёт элемент в группу, группа забирает себе элемент полностью, никаких ссылок!
-    pub fn put(&mut self, element: T) {
-        self.elements.push(Some(element));
+    fn put(&mut self, element: T) {
+        self.get_elements_mut().push(Some(element));
     }
     /// Вызывает closure для каждого элемента в группе.
     /// closure получает элемент и делает с ним что хочет, но возвращает спрайт
-    pub fn call<F>(&mut self, mut closure: F)
+    fn call<F>(&mut self, mut closure: F)
     where F: FnMut(T) -> T
     {
         let mut element: T;
-        for i in (0..self.elements.len()).rev() {
-            let el = &mut self.elements[i];
+        for i in (0..self.get_elements().len()).rev() {
+            let el = &mut self.get_elements_mut()[i];
             if let None = el {
                 continue;
             }
@@ -32,17 +48,10 @@ impl <T> Group<T> {
         }
     }
     /// Забирает элемент из группы и возвращает его
-    pub fn take_el(&mut self, i: usize) -> Option<T> {
-        assert!(i < self.elements.len(), "Элемента с индексом {i} не существует");
-        let i_last = self.elements.len() -1;
-        self.elements.swap(i, i_last);
-        self.elements.pop().unwrap()
+    fn take_el(&mut self, i: usize) -> Option<T> {
+        assert!(i < self.get_elements().len(), "Элемента с индексом {i} не существует");
+        let i_last = self.get_elements().len() -1;
+        self.get_elements_mut().swap(i, i_last);
+        self.get_elements_mut().pop().unwrap()
     }
-}
-trait GetElements <T> {
-    fn get_elements(&self) -> &Vec<T>;
-    fn get_elements_mut(&self) -> &mut Vec<T>;
-}
-
-trait SomeGroup<T>:GetElements<T> {
 }

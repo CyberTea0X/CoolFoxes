@@ -6,14 +6,12 @@ use std::path::Path;
 use std::time::{Duration, Instant};
 
 use glium::glutin;
-use glium::glutin::dpi::LogicalSize;
 use glium::glutin::dpi::PhysicalSize;
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
-use glium::glutin::window::CursorIcon::SResize;
 use glium::Surface;
 
 use engine::graphics::sprite::SpriteManager;
-use engine::group::Group;
+use engine::group::{Group, SomeGroup};
 use engine::programs::ProgramManager;
 use engine::rect::Rectangular;
 use engine::time::Clock;

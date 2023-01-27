@@ -4,16 +4,18 @@ use cgmath::{Matrix4, Point2};
 use glium;
 use glium::{BlendingFunction, Surface, uniform};
 use glium::draw_parameters::LinearBlendingFactor;
-use glium::glutin::dpi::{LogicalPosition, LogicalSize, PhysicalSize};
+use glium::glutin::dpi::{PhysicalSize};
 use glium::texture::SrgbTexture2d;
 
 use crate::graphics::Vertex;
+use crate::group::{Group, SomeGroup};
 use crate::loader::TextureLoader;
 use crate::rect::{Rect, Rectangular};
 use crate::traits::graphics::{FrameList, Layered};
 
 /// Спрайт - это текстура и квадрат, в котором эта текстура рисуется.
 /// У спрайта есть слой, на котором он рисуется.
+/// У спрайта есть имя
 pub struct Sprite {
     rect: Rect,
     texture: SrgbTexture2d,
@@ -61,6 +63,30 @@ impl FrameList for Sprite {
     }
 }
 
+struct SpriteGroup {
+    group: Group<Sprite>
+}
+impl SpriteGroup {
+    pub fn new() -> Self {
+        SpriteGroup {
+            group: Group::new()
+        }
+    }
+    /// Создаёт группу из вектора элементов
+    pub fn from(elements: Vec<Sprite>) -> Self {
+        SpriteGroup {group: Group::from(elements)}
+    }
+}
+
+impl SomeGroup<Sprite> for SpriteGroup {
+    fn get_elements(&self) -> &Vec<Option<Sprite>> {
+        self.group.get_elements()
+    }
+    fn get_elements_mut(&mut self) -> &mut Vec<Option<Sprite>> {
+        self.group.get_elements_mut()
+    }
+}
+
 /// SpriteManager занимается отрисовкой любых спрайтов на экране. Упрощает отрисовку.
 pub struct SpriteManager<'a> {
     display: &'a glium::Display,
@@ -68,7 +94,6 @@ pub struct SpriteManager<'a> {
     perspective: [[f32; 4]; 4],
     draw_parameters: glium::draw_parameters::DrawParameters<'a>,
     screen_size: PhysicalSize<u32>,
-    screen_ratio: f64,
 }
 
 impl SpriteManager<'_> {
@@ -82,7 +107,6 @@ impl SpriteManager<'_> {
             perspective: SpriteManager::perspective_default(screen_width, screen_height),
             draw_parameters: SpriteManager::draw_parameters_default(),
             screen_size: PhysicalSize::new(screen_width, screen_height),
-            screen_ratio: screen_width as f64 / screen_height as f64,
         }
     }
     /// Создаёт спрайт, загружая его картинку из файла по указанному пути

@@ -30,11 +30,11 @@ fn main() {
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = Group::new();
-    sprites.put(sprite_manager.build_sprite(Path::new("fox.png"), 0.15)
+    sprites.put(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.15)
         .with_position(0, 768));
-    sprites.put(sprite_manager.build_sprite(Path::new("target.png"), 0.15)
+    sprites.put(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.15)
         .with_position(SCREEN_WIDTH-150, 768));
-    sprites.put(sprite_manager.build_bg(Path::new("bg.png"))
+    sprites.put(sprite_manager.build_bg(Path::new("./assets/images/bg.png"))
         .with_position(0, 768));
     let mut dt = 0;
     let fps = 60;

@@ -1,3 +1,7 @@
+/// Группа для чего угодно
+/// Группы нужны для того, чтобы вызывать одну и ту же функцию для всех элементов
+/// А также эффективно хранить различные элементы, работать с ними
+#[derive(Debug)]
 pub struct Group<T> {
     elements: Vec<Option<T>>,
 }
@@ -21,10 +25,13 @@ impl <T> SomeGroup<T> for Group<T> {
 }
 
 pub trait SomeGroup<T> {
-    /// Возвращает ссылку на вектор элементов
+    /// Возвращает ссылку на вектор элементов. Не рекомендуется работать с ними напрямую,
+    /// если только вы не делаете на основе группы новую структуру.
     fn get_elements(&self) -> &Vec<Option<T>>;
-    /// Возвращает изменяемую ссылку на вектор элементов
+    /// Возвращает изменяемую ссылку на вектор элементов. Не рекомендуется работать с ними напрямую,
+    /// если только вы не делаете на основе группы новую структуру.
     fn get_elements_mut(&mut self) -> &mut Vec<Option<T>>;
+    /// Резервирует некоторый размер для внутреннего вектора. Полезно для оптимизации.
     fn reserve(&mut self, additional: usize) {
         self.get_elements_mut().reserve(additional)
     }
@@ -53,5 +60,23 @@ pub trait SomeGroup<T> {
         let i_last = self.get_elements().len() -1;
         self.get_elements_mut().swap(i, i_last);
         self.get_elements_mut().pop().unwrap()
+    }
+    /// Возвращает неизменяемую ссылку на элемент под указанным индексом
+    fn get(&self, i: usize) -> Option<&T> {
+        if let Some(opt) = self.get_elements().get(i) {
+            if let Some(t) = opt {
+                return Some(t);
+            }
+        }
+        return None;
+    }
+    /// Возвращает изменяемую ссылку на элемент под указанным индексом
+    fn get_mut(&mut self, i: usize) -> Option<&mut T> {
+        if let Some(opt) = self.get_elements_mut().get_mut(i) {
+            if let Some(t) = opt {
+                return Some(t);
+            }
+        }
+        return None;
     }
 }

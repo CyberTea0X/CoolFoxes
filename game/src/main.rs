@@ -10,11 +10,12 @@ use glium::glutin::dpi::PhysicalSize;
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 use glium::Surface;
 
-use engine::graphics::sprite::SpriteManager;
-use engine::group::{Group, SomeGroup};
+use engine::graphics::sprite::{SpriteGroup, SpriteManager};
+use engine::group::{SomeGroup};
 use engine::programs::ProgramManager;
 use engine::rect::Rectangular;
 use engine::time::Clock;
+use engine::traits::misc::Named;
 
 const SCREEN_WIDTH: u32 = 1224;
 const SCREEN_HEIGHT: u32 = 768;
@@ -23,19 +24,22 @@ fn main() {
     let mut event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new()
         .with_inner_size(PhysicalSize::new(SCREEN_WIDTH, SCREEN_HEIGHT))
-        .with_title(format!("Hello world!"));
+        .with_title(format!("Cool foxes"));
     let cb = glutin::ContextBuilder::new();
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
     let rect_program = ProgramManager::rect_drawing_program(&display);
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
-    let mut sprites = Group::new();
+    let mut sprites = SpriteGroup::new();
     sprites.put(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.15)
-        .with_position(0, 768));
+        .with_position(0, 768)
+        .named("fox"));
     sprites.put(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.15)
-        .with_position(SCREEN_WIDTH-150, 768));
+        .with_position(SCREEN_WIDTH-150, 768)
+        .named("target"));
     sprites.put(sprite_manager.build_bg(Path::new("./assets/images/bg.png"))
         .with_position(0, 768));
+    println!("{:#?}", sprites);
     let mut dt = 0;
     let fps = 60;
     let mut event_handling_start: Instant;

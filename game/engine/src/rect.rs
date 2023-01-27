@@ -1,7 +1,7 @@
 use cgmath::Point2;
 use glium::glutin::dpi::{PhysicalSize};
 /// Квадрат, позиция которого это его левый нижний угол, а размер это его ширина и высота
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Rect {
     position: Point2<f64>,
     size: PhysicalSize<f64>

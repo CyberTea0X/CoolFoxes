@@ -12,6 +12,7 @@ use crate::group::{Group, SomeGroup};
 use crate::loader::TextureLoader;
 use crate::rect::{Rect, Rectangular};
 use crate::traits::graphics::{FrameList, Layered};
+use crate::traits::misc::Named;
 
 /// Спрайт - это текстура и квадрат, в котором эта текстура рисуется.
 /// У спрайта есть слой, на котором он рисуется.
@@ -19,6 +20,7 @@ use crate::traits::graphics::{FrameList, Layered};
 pub struct Sprite {
     rect: Rect,
     texture: SrgbTexture2d,
+    name: Option<String>,
     frames_h: u32,
     frames_v: u32,
     _cur_frame: u32,
@@ -28,8 +30,9 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn new (rect: Rect, texture: SrgbTexture2d, frames_h: u32, frames_v: u32, _cur_frame: u32, layer: u32, _hidden: bool) -> Self {
-        Sprite { rect, texture, frames_h, frames_v, _cur_frame, layer, _hidden }
+    pub fn new (rect: Rect, texture: SrgbTexture2d, name: Option<String>, frames_h: u32, frames_v: u32,
+                _cur_frame: u32, layer: u32, _hidden: bool) -> Self {
+        Sprite { rect, texture, name, frames_h, frames_v, _cur_frame, layer, _hidden }
     }
     pub fn updated(self) -> Sprite {
         return self
@@ -60,6 +63,15 @@ impl FrameList for Sprite {
     }
     fn get_frames_mut(&mut self) -> (&mut u32, &mut u32) {
         (&mut self.frames_h, &mut self.frames_v)
+    }
+}
+
+impl Named for Sprite {
+    fn get_name(&self) -> &Option<String> {
+        &self.name
+    }
+    fn get_name_mut(&mut self) -> &mut Option<String> {
+        &mut self.name
     }
 }
 
@@ -115,22 +127,27 @@ impl SpriteManager<'_> {
     {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::from_scaled(texture.dimensions(), scale);
-        Sprite::new(rect, texture, 1, 1, 1, 1, false)
+        let name = match path.file_name() {
+            Some(t) => if let Some(s) = t.to_str() {Some(String::from(s))} else { None }
+            _ => None,
+        };
+        Sprite::new(rect, texture, name, 1, 1, 1, 1, false)
     }
     /// Создаёт новый спрайт, передавая ему все необходимые данные.
-    pub fn new_sprite(&self, frames_h: u32, frames_v: u32, _cur_frame: u32,
-                      layer: u32, _hidden: bool, path:&Path, scale: f64) -> Sprite
+    pub fn new_sprite(&self, path:&Path, name: Option<String>, frames_h: u32, frames_v: u32,
+                      _cur_frame: u32, layer: u32, _hidden: bool, scale: f64) -> Sprite
     {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::from_scaled(texture.dimensions(), scale);
-        Sprite::new(rect, texture, frames_h, frames_v, _cur_frame, layer, _hidden)
+        Sprite::new(rect, texture, name, frames_h, frames_v, _cur_frame, layer, _hidden)
     }
     /// Создаёт новый спрайт для фона
     pub fn build_bg(&self, path:&Path) -> Sprite {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::new(Point2::new(0.0, 0.0),
         PhysicalSize::new(self.screen_size.width as f64, self.screen_size.height as f64));
-        Sprite::new(rect, texture, 1, 1, 1, 0, false)
+        Sprite::new(rect, texture, None,
+                    1, 1, 1, 0, false)
     }
     /// Рисует спрайт на указанном фрейме
     pub fn draw(&self, sprite: &Sprite, frame: &mut glium::Frame) {

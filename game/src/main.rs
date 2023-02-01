@@ -10,12 +10,13 @@ use glium::glutin::dpi::PhysicalSize;
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 use glium::Surface;
 
-use engine::graphics::sprite::{SpriteGroup, SpriteManager};
-use engine::group::{SomeGroup};
+use engine::graphics::sprite::SpriteManager;
+use engine::graphics::sprite::SpriteGroup;
+use engine::group::SomeGroup;
 use engine::programs::ProgramManager;
 use engine::rect::Rectangular;
 use engine::time::Clock;
-use engine::traits::misc::Named;
+use engine::misc_traits::named::Named;
 
 const SCREEN_WIDTH: u32 = 1224;
 const SCREEN_HEIGHT: u32 = 768;
@@ -31,13 +32,13 @@ fn main() {
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = SpriteGroup::new();
-    sprites.put(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.15)
+    sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.15)
         .with_position(0, 768)
         .named("fox"));
-    sprites.put(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.15)
+    sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.15)
         .with_position(SCREEN_WIDTH-150, 768)
         .named("target"));
-    sprites.put(sprite_manager.build_bg(Path::new("./assets/images/bg.png"))
+    sprites.push(sprite_manager.build_bg(Path::new("./assets/images/bg.png"))
         .with_position(0, 768));
     println!("{:#?}", sprites);
     let mut dt = 0;

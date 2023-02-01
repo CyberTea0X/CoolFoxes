@@ -36,8 +36,15 @@ pub trait SomeGroup<T> {
         self.get_elements_mut().reserve(additional)
     }
     /// Кладёт элемент в группу, группа забирает себе элемент полностью, никаких ссылок!
-    fn put(&mut self, element: T) {
+    fn push(&mut self, element: T) {
         self.get_elements_mut().push(Some(element));
+    }
+    fn append(&mut self, elements: Vec<T>) {
+        let mut elements = elements
+            .into_iter()
+            .map(|el| Some(el))
+            .collect();
+        self.get_elements_mut().append(&mut elements);
     }
     /// Вызывает closure для каждого элемента в группе.
     /// closure получает элемент и делает с ним что хочет, но возвращает спрайт

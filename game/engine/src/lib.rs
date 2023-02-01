@@ -10,7 +10,7 @@ pub mod time;
 pub mod component;
 pub mod unit;
 pub mod group;
-pub mod traits;
+pub mod misc_traits;
 pub mod loader;
 pub mod programs;
 

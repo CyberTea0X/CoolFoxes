@@ -1,4 +1,3 @@
-
 pub trait Layered {
     fn get_layer(&self) -> u32;
     fn get_layer_mut(&mut self) -> &mut u32;
@@ -33,4 +32,10 @@ pub trait FrameList {
         self.set_frames(frames_h, frames_v);
         self
     }
+}
+
+pub trait HasTexture {
+    type Texture;
+    fn get_texture(&self) -> &Self::Texture;
+    fn get_texture_mut(&mut self) -> &mut Self::Texture;
 }

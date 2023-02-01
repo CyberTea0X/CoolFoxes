@@ -1,151 +1,14 @@
+use glium::glutin::dpi::PhysicalSize;
 use std::path::Path;
-
 use cgmath::{Matrix4, Point2};
-use glium;
-use glium::{BlendingFunction, Surface, uniform};
-use glium::draw_parameters::LinearBlendingFactor;
-use glium::glutin::dpi::{PhysicalSize};
-use glium::texture::SrgbTexture2d;
+use glium::{BlendingFunction, LinearBlendingFactor, Surface, uniform};
 
-use crate::graphics::Vertex;
-use crate::group::{Group, SomeGroup};
+use crate::component::group::ComponentsGroup;
+use crate::graphics::{Sprite, Vertex};
 use crate::loader::TextureLoader;
-use crate::rect::{Rect, Rectangular};
-use crate::traits::graphics::{FrameList, Layered};
-use crate::traits::misc::Named;
-
-/// Спрайт - это текстура и квадрат, в котором эта текстура рисуется.
-/// У спрайта есть слой, на котором он рисуется.
-/// У спрайта есть имя
-#[derive(Debug)]
-pub struct Sprite {
-    rect: Rect,
-    texture: SrgbTexture2d,
-    name: Option<String>,
-    frames_h: u32,
-    frames_v: u32,
-    _cur_frame: u32,
-    layer: u32,
-    _hidden: bool,
-    //components
-}
-
-impl Sprite {
-    pub fn new (rect: Rect, texture: SrgbTexture2d, name: Option<String>, frames_h: u32, frames_v: u32,
-                _cur_frame: u32, layer: u32, _hidden: bool) -> Self {
-        Sprite { rect, texture, name, frames_h, frames_v, _cur_frame, layer, _hidden }
-    }
-    pub fn updated(self) -> Sprite {
-        return self
-    }
-}
-
-impl Rectangular for Sprite {
-    fn get_rect(&self) -> &Rect {
-        &self.rect
-    }
-    fn get_rect_mut(&mut self) -> &mut Rect {
-        &mut self.rect
-    }
-}
-
-impl Layered for Sprite {
-    fn get_layer(&self) -> u32 {
-        self.layer
-    }
-    fn get_layer_mut(&mut self) -> &mut u32 {
-        &mut self.layer
-    }
-}
-
-impl FrameList for Sprite {
-    fn get_frames(&self) -> (u32, u32) {
-        (self.frames_h, self.frames_v)
-    }
-    fn get_frames_mut(&mut self) -> (&mut u32, &mut u32) {
-        (&mut self.frames_h, &mut self.frames_v)
-    }
-}
-
-impl Named for Sprite {
-    fn get_name(&self) -> &Option<String> {
-        &self.name
-    }
-    fn get_name_mut(&mut self) -> &mut Option<String> {
-        &mut self.name
-    }
-}
-
-/// Как обычная группа, только для спрайтов и со специальными для них методами
-#[derive(Debug)]
-pub struct SpriteGroup {
-    group: Group<Sprite>
-}
-impl SpriteGroup {
-    pub fn new() -> Self {
-        SpriteGroup {
-            group: Group::new()
-        }
-    }
-    /// Создаёт группу из вектора элементов
-    pub fn from(elements: Vec<Sprite>) -> Self {
-        SpriteGroup {group: Group::from(elements)}
-    }
-    /// Ищет спрайт по имени
-    pub fn find(&self, name: &str) -> Option<usize>{
-        let elements = self.get_elements();
-        for i in 0..self.get_elements().len() {
-            let element = if let Some(sprite)= &elements[i] {sprite} else {continue};
-            let sprite_name = if let Some(n) = element.get_name() {n} else {continue};
-            if sprite_name.as_str() == name {
-                return Some(i);
-            }
-        }
-        return None;
-    }
-    /// Ищет спрайт по имени и возвращает Option<&Sprite>
-    pub fn find_get(&self, name: &str) -> Option<&Sprite> {
-        let i = self.find(name);
-        match i {
-            Some(i) => self.get(i),
-            None => None,
-        }
-    }
-    /// Ищет спрайт по имени и возвращает Option<&mut Sprite>
-    pub fn find_get_mut(&mut self, name: &str) -> Option<&mut Sprite> {
-        let i = self.find(name);
-        match i {
-            Some(i) => self.get_mut(i),
-            None => None,
-        }
-    }
-    /// Ищет спрайт по имени и возвращает Option<Sprite>
-    pub fn find_take(&mut self, name: &str) -> Option<Sprite> {
-        let i = self.find(name);
-        match i {
-            Some(i) => self.take_el(i),
-            None => None,
-        }
-    }
-}
-
-impl SomeGroup<Sprite> for SpriteGroup {
-    fn get_elements(&self) -> &Vec<Option<Sprite>> {
-        self.group.get_elements()
-    }
-    fn get_elements_mut(&mut self) -> &mut Vec<Option<Sprite>> {
-        self.group.get_elements_mut()
-    }
-}
-
-/// SpriteManager занимается отрисовкой любых спрайтов на экране. Упрощает отрисовку.
-pub struct SpriteManager<'a> {
-    display: &'a glium::Display,
-    program: &'a glium::Program,
-    perspective: [[f32; 4]; 4],
-    draw_parameters: glium::draw_parameters::DrawParameters<'a>,
-    screen_size: PhysicalSize<u32>,
-}
+use crate::Rect;
+use crate::rect::Rectangular;
+use crate::graphics::traits::HasTexture;
 
 impl SpriteManager<'_> {
     /// Создаёт новый экземпляр SpriteManager из ссылки на дисплей, прогромму для рисования,
@@ -162,7 +25,8 @@ impl SpriteManager<'_> {
     }
     /// Создаёт спрайт, загружая его картинку из файла по указанному пути
     /// аттрибуты width и height это ширина и высота спрайта
-    pub fn build_sprite(&self, path:&Path, scale: f64) -> Sprite
+    pub fn build_sprite(&self, path:&Path, scale: f64)
+        -> Sprite
     {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::from_scaled(texture.dimensions(), scale);
@@ -170,23 +34,26 @@ impl SpriteManager<'_> {
             Some(t) => if let Some(s) = t.to_str() {Some(String::from(s))} else { None }
             _ => None,
         };
-        Sprite::new(rect, texture, name, 1, 1, 1, 1, false)
+        Sprite::new(rect, texture, name, 1, 1, 1, 1,
+                    ComponentsGroup::new(), false)
     }
     /// Создаёт новый спрайт, передавая ему все необходимые данные.
     pub fn new_sprite(&self, path:&Path, name: Option<String>, frames_h: u32, frames_v: u32,
-                      _cur_frame: u32, layer: u32, _hidden: bool, scale: f64) -> Sprite
+                      _cur_frame: u32, layer: u32, components: Option<ComponentsGroup>,
+                      _hidden: bool, scale: f64) -> Sprite
     {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::from_scaled(texture.dimensions(), scale);
-        Sprite::new(rect, texture, name, frames_h, frames_v, _cur_frame, layer, _hidden)
+        let components = components.unwrap_or(ComponentsGroup::new());
+        Sprite::new(rect, texture, name, frames_h, frames_v, _cur_frame, layer, components, _hidden)
     }
     /// Создаёт новый спрайт для фона
     pub fn build_bg(&self, path:&Path) -> Sprite {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::new(Point2::new(0.0, 0.0),
         PhysicalSize::new(self.screen_size.width as f64, self.screen_size.height as f64));
-        Sprite::new(rect, texture, None,
-                    1, 1, 1, 0, false)
+        Sprite::new(rect, texture, None, 1,
+                    1, 1, 0, ComponentsGroup::new(),false)
     }
     /// Рисует спрайт на указанном фрейме
     pub fn draw(&self, sprite: &Sprite, frame: &mut glium::Frame) {
@@ -239,7 +106,7 @@ impl SpriteManager<'_> {
         }
         let uniforms = uniform! {
             projection: self.perspective,
-            tex: &sprite.texture,
+            tex: sprite.get_texture(),
         };
         frame.draw(
                 &rect_vertices,
@@ -281,4 +148,13 @@ impl SpriteManager<'_> {
         );
         Into::<[[f32; 4]; 4]>::into(matrix)
     }
+}
+
+/// SpriteManager занимается отрисовкой любых спрайтов на экране. Упрощает отрисовку.
+pub struct SpriteManager<'a> {
+    display: &'a glium::Display,
+    program: &'a glium::Program,
+    perspective: [[f32; 4]; 4],
+    draw_parameters: glium::draw_parameters::DrawParameters<'a>,
+    screen_size: PhysicalSize<u32>,
 }

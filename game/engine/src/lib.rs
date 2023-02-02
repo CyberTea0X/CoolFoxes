@@ -13,6 +13,7 @@ pub mod group;
 pub mod misc_traits;
 pub mod loader;
 pub mod programs;
+pub mod messaging;
 
 pub use rect::Rect;
 

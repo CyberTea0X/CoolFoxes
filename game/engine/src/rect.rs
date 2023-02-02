@@ -79,6 +79,9 @@ pub trait Rectangular {
     }
     /// Двигает объект в указанную позицию.
     /// Для координат, которые вы не собираетесь менять, можно указать значение None
+    fn position(&self) -> Point2<f64> {
+        return self.get_rect().position
+    }
     fn move_ip<T: Into<f64>>(&mut self, x: Option<T>, y: Option<T>) {
         let mut rect = self.get_rect_mut();
         if let Some(x) = x {
@@ -88,7 +91,7 @@ pub trait Rectangular {
             rect.position.y = y.into();
         };
     }
-    /// Если дословно, то прибавить к позиции объекта x и y
+    /// Если простыми словами, то прибавить к позиции объекта x и y
     fn move_by<A: Into<f64>, B: Into<f64>>(&mut self, x: A, y: B) {
         let mut rect = self.get_rect_mut();
         rect.position.x += x.into();

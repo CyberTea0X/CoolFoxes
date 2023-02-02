@@ -35,7 +35,7 @@ impl SpriteManager<'_> {
             _ => None,
         };
         Sprite::new(rect, texture, name, 1, 1, 1, 1,
-                    ComponentsGroup::new(), false)
+                    None, false)
     }
     /// Создаёт новый спрайт, передавая ему все необходимые данные.
     pub fn new_sprite(&self, path:&Path, name: Option<String>, frames_h: u32, frames_v: u32,
@@ -44,7 +44,6 @@ impl SpriteManager<'_> {
     {
         let texture = TextureLoader::load_rgba_texture(path, self.display);
         let rect = Rect::from_scaled(texture.dimensions(), scale);
-        let components = components.unwrap_or(ComponentsGroup::new());
         Sprite::new(rect, texture, name, frames_h, frames_v, _cur_frame, layer, components, _hidden)
     }
     /// Создаёт новый спрайт для фона
@@ -53,7 +52,7 @@ impl SpriteManager<'_> {
         let rect = Rect::new(Point2::new(0.0, 0.0),
         PhysicalSize::new(self.screen_size.width as f64, self.screen_size.height as f64));
         Sprite::new(rect, texture, None, 1,
-                    1, 1, 0, ComponentsGroup::new(),false)
+                    1, 1, 0, None,false)
     }
     /// Рисует спрайт на указанном фрейме
     pub fn draw(&self, sprite: &Sprite, frame: &mut glium::Frame) {

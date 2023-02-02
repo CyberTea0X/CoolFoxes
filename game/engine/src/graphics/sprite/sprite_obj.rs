@@ -18,18 +18,24 @@ pub struct Sprite {
     frames_v: u32,
     _cur_frame: u32,
     layer: u32,
-    components: ComponentsGroup,
+    components: Option<ComponentsGroup>,
     _hidden: bool,
 }
 
 impl Sprite {
     pub fn new (rect: Rect, texture: SrgbTexture2d, name: Option<String>, frames_h: u32,
                 frames_v: u32, _cur_frame: u32,
-                layer: u32, components: ComponentsGroup, _hidden: bool) -> Self {
+                layer: u32, components: Option<ComponentsGroup>, _hidden: bool) -> Self {
         Sprite { rect, texture, name, frames_h, frames_v, _cur_frame, layer,  components, _hidden}
     }
-    pub fn updated(self) -> Sprite {
-        return self
+    pub fn updated(mut self, dt: u32) -> Sprite {
+        let components = match self.components.take() {
+            Some(t) => t,
+            None => return self,
+        };
+        let (components, mut sprite) = components.updated(dt, self);
+        sprite.components.replace(components);
+        sprite
     }
 }
 
@@ -81,10 +87,10 @@ impl Named for Sprite {
 }
 
 impl Composite for Sprite {
-    fn get_components(&self) -> &ComponentsGroup {
+    fn get_components(&self) -> &Option<ComponentsGroup> {
         &self.components
     }
-    fn get_components_mut(&mut self) -> &mut ComponentsGroup {
+    fn get_components_mut(&mut self) -> &mut Option<ComponentsGroup> {
         &mut self.components
     }
 }

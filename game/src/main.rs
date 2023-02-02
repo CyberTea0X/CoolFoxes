@@ -9,6 +9,8 @@ use glium::glutin;
 use glium::glutin::dpi::PhysicalSize;
 use glium::glutin::platform::run_return::EventLoopExtRunReturn;
 use glium::Surface;
+use measurements::Mass;
+use engine::component::traits::Composite;
 
 use engine::graphics::sprite::SpriteManager;
 use engine::graphics::sprite::SpriteGroup;
@@ -17,6 +19,7 @@ use engine::programs::ProgramManager;
 use engine::rect::Rectangular;
 use engine::time::Clock;
 use engine::misc_traits::named::Named;
+use engine::physics::components::PhysicsComponent;
 
 const SCREEN_WIDTH: u32 = 1224;
 const SCREEN_HEIGHT: u32 = 768;
@@ -32,41 +35,47 @@ fn main() {
     let sprite_manager = SpriteManager::from(&display, &rect_program,
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = SpriteGroup::new();
+    let gravity = 9.8;
     sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.15)
-        .with_position(0, 768)
-        .named("fox"));
+        .with_position(0, 0)
+        .named("fox")
+        .with_component(
+            PhysicsComponent::new(Mass::from_kilograms(50.0), gravity)));
     sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.15)
-        .with_position(SCREEN_WIDTH-150, 768)
-        .named("target"));
+        .with_position(SCREEN_WIDTH-150, 0)
+        .named("target")
+        .with_component(
+            PhysicsComponent::new(Mass::from_kilograms(100.0), gravity)));
     sprites.push(sprite_manager.build_bg(Path::new("./assets/images/bg.png"))
         .with_position(0, 768));
     println!("{:#?}", sprites);
-    let mut dt = 0;
+    let mut dt;
     let fps = 60;
     let mut event_handling_start: Instant;
     let mut frame_handling_start: Instant;
     let mut running = true;
     let mut clock = Clock::new();
-    let mut move_direction = 1;
+    let start_time = Instant::now();
+    let mut wait = Duration::from_secs(1);
     while running {
         let mut frame = display.draw();
         frame_handling_start = Instant::now();
-        println!("delta time: {}", dt);
-        dt = clock.get_time().as_millis();
+        dt = clock.get_time().as_millis() as u32;
+        //println!("{}", dt);
         // Start with white background.
         frame.clear_color(1.0, 1.0, 1.0, 1.0);
-        // sprite_manager.draw(&bg, &mut frame);
-        // sprite_manager.draw(&spr1, &mut frame);
-        // sprite_manager.draw(&target, &mut frame);
         sprites.call(|mut sprite| {
-            if sprite.x() > SCREEN_WIDTH as f64 || sprite.right() < 0.0 {
-                move_direction = -move_direction;
-            }
-            sprite.move_by(move_direction, 0);
+            sprite = sprite.updated(dt);
             sprite_manager.draw(&sprite, &mut frame);
+            if start_time.elapsed() >= wait {
+                println!("{:?}", sprite)
+            }
             sprite
         }
         );
+        if start_time.elapsed() >= wait {
+            wait += Duration::from_secs(1);
+        }
         frame.finish().unwrap();
 
         // Handles keyboard input.

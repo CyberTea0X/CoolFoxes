@@ -4,6 +4,7 @@ extern crate image;
 
 use std::path::Path;
 use std::time::{Duration, Instant};
+use cgmath::Vector2;
 
 use glium::glutin;
 use glium::glutin::dpi::PhysicalSize;
@@ -36,16 +37,18 @@ fn main() {
                                              SCREEN_WIDTH, SCREEN_HEIGHT);
     let mut sprites = SpriteGroup::new();
     let gravity = 9.8;
-    sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.15)
+    sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/fox.png"), 0.10)
         .with_position(0, 0)
         .named("fox")
         .with_component(
-            PhysicsComponent::new(Mass::from_kilograms(50.0), gravity)));
-    sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.15)
+            PhysicsComponent::new(Mass::from_kilograms(50.0), gravity,
+            Some(Vector2::new(60.0, 10.0)))));
+    sprites.push(sprite_manager.build_sprite(Path::new("./assets/images/target.png"), 0.10)
         .with_position(SCREEN_WIDTH-150, 0)
         .named("target")
         .with_component(
-            PhysicsComponent::new(Mass::from_kilograms(100.0), gravity)));
+            PhysicsComponent::new(Mass::from_kilograms(100.0), gravity,
+            Some(Vector2::new(-100.0, 10.0)))));
     sprites.push(sprite_manager.build_bg(Path::new("./assets/images/bg.png"))
         .with_position(0, 768));
     println!("{:#?}", sprites);

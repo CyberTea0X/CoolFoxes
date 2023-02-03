@@ -20,36 +20,51 @@ pub struct PhysicsComponent {
 }
 
 impl PhysicsComponent {
-    pub fn new(mass: Mass, gravity: f64) -> Component {
+    pub fn new(mass: Mass, gravity: f64, starting_velocity: Option<Vector2<f64>>) -> Component {
         return Component::PhysicsComponent(PhysicsComponent
         {
             time_elapsed: 0,
             mass,
             gravity,
-            velocity: Vector2::new(0.0, 0.0),
+            velocity: starting_velocity.unwrap_or(Vector2::new(0.0, 0.0)),
             acceleration: Vector2::new(0.0, 0.0),
             input_messages: Queue::new(),
             output_messages: Queue::new(),
         })
     }
-    /// Ускоряем объект
-    fn accelerate(&mut self, acc: Vector2<f64>) {
-        self.velocity += acc;
-    }
-    /// Ускоряем объект в зависимости от силы
-    fn apply_force(&mut self, f: Vector2<f64>) {
-        let a = f / self.mass.as_kilograms();
-        self.accelerate(a);
-    }
-    /// Применяем гравитацию к объекту
-    fn apply_gravity(&mut self, dt: f64) {
-        let gravity_force = self.gravity * self.mass.as_kilograms() * dt;
-        self.apply_force(Vector2::new(0.0, gravity_force))
-    }
+    // /// Ускоряем объект
+    // fn accelerate(&mut self, acc: Vector2<f64>) {
+    //     self.velocity += acc;
+    // }
+    // /// Ускоряем объект в зависимости от силы
+    // fn apply_force(&mut self, f: Vector2<f64>) {
+    //     let a = f / self.mass.as_kilograms();
+    //     self.accelerate(a);
+    // }
+    // /// Применяем гравитацию к объекту
+    // fn apply_gravity(&mut self, dt: f64) {
+    //     let gravity_force = self.gravity * self.mass.as_kilograms() * dt;
+    //     self.apply_force(Vector2::new(0.0, gravity_force))
+    // }
     /// Не даёт объектам выпасть за экран
-    fn apply_constraint(host: &mut Sprite) {
+    fn apply_constraint(&mut self, host: &mut Sprite) {
         if host.y() > 768.0 {
+            self.velocity.x *= 0.99;
+            self.velocity.y = self.velocity.y * -0.4;
             host.move_ip(None, Some(768));
+        }
+        if host.y() < 0.0+host.height() {
+            self.velocity.x *= 0.99;
+            self.velocity.y = self.velocity.y * -0.9;
+            host.move_ip(None, Some(0.0+host.height()));
+        }
+        if host.x() > 1224.0-host.width() {
+            self.velocity.x = - self.velocity.x;
+            host.move_ip(Some(1224.0-host.width()), None);
+        }
+        if host.x() < 0.0 {
+            self.velocity.x = - self.velocity.x;
+            host.move_ip(Some(0), None);
         }
     }
 }
@@ -75,7 +90,7 @@ impl Updatable for PhysicsComponent {
         v += 0.5 * a * dt;
         self.velocity = v;
         _host.move_by(distance.x, distance.y);
-        PhysicsComponent::apply_constraint(_host);
+        self.apply_constraint(_host);
         self
     }
 }
